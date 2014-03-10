@@ -71,12 +71,24 @@ var AutomatonUtil = {
 	}
 };
 
+function mixin(ctx, obj){
+	for (var prop in obj){
+		if (obj.hasOwnProperty(prop)){
+			if (!ctx.hasOwnProperty(prop)){
+				ctx[prop] = obj[prop];
+			}
+			else throw 'mixin failed, property [' + prop +'] already exists on target';
+		}
+	}
+}
+
 var Automaton = function(height_, width_) {
 
+	mixin(this, AutomatonUtil);
+
 	var self = {},
-		u = AutomatonUtil,
 		rule = null,
-		cells = u.genCells(height_, width_);
+		cells = genCells(height_, width_);
 
 	self.update = function(){
 		u.updateCells(cells, rule);
