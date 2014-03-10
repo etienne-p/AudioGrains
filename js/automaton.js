@@ -1,29 +1,17 @@
-// automaton is responsible for applying rules on cells,
-// exposing cell states, but not rendering them
-var AutomatonUtil = {
+// TODO: AutomatonUtil <> Automaton, similar relation between obj & class in Scala?
 
+var AutomatonRules = {
 
+	// rule: "STATE IS NUMBER OF NEIGHBORS" for debug
+	countNeighbors: function() {
+		nextState = neighbors.length;
+	}
 }
 
-// TODO: move it outside automaton for reuse, is it really a mixin?
-	function mixin(ctx, obj) {
-		for (var prop in obj) {
-			if (obj.hasOwnProperty(prop) && !ctx.hasOwnProperty(prop)) ctx[prop] = obj[prop];
-			else throw new Error('mixin failed at prop: [' + prop + ']'); // TODO: better Error Handling
-		}
-	}
-
-var Automaton = function(height_, width_) {
-
-	// incorporate utils
-	//mixin(this, AutomatonUtil);
-
-	var self = {};
-
-	// functional helpers
+var AutomatonUtil = {
 
 	// generate a data structure representing cells and their neighbors
-	function genCells(height_, width_) {
+	genCells: function(height_, width_) {
 
 		// init cells
 		var cells = [],
@@ -56,43 +44,48 @@ var Automaton = function(height_, width_) {
 				dLine = neighborIndexes[j * 2];
 				dIndex = neighborIndexes[j * 2 + 1];
 				index = i + dIndex;
-				if (index > -1 && index < nCells && lineOf(dIndex + dLine) == lineOf(i))
-					neighbors.push(cells[i]);
+				if (index > -1 && index < nCells && lineOf(index) == lineOf(i + dLine))
+					neighbors.push(cells[index]);
 			}
+			cells[i].neighbors = neighbors;
 		}
 		return cells;
-	}
+	},
 
-	function lineOf(width_, index_) {
+	lineOf: function(width_, index_) {
 		return Math.floor(index / width_);
-	}
+	},
 
-	function columnOf(height_, width_, index_) {
+	columnOf: function(height_, width_, index_) {
 		return index % width_;
-	}
-
-	// rule: this is expected to be a cell
-	function mockRule() {
-		var i = neighbors.length;
-		while (i--) neighbors[i].prevState; * .nextState =
-	}
-
-	// TODO: add a rule: "STATE IS NUMBER OF NEIGHBORS" for debug
+	},
 
 	// returns an array representing latest cells state
-	function updateCells(cells, rule) {
+	updateCells: function(cells, rule) {
 		var len = cells.length,
 			i = 0,
 			states = [];
-		// state evaluation
-		for (; i < len; ++i) {
-			// currentStateIndex: let the rule wich index of states array is considered to be the current state
-			rule.call(cells[i])
-		}
-		// state transition
-		for (i = 0; i < len; ++i) states[cells[i].state = cells[i].nextState];
-
+		for (; i < len; ++i) rule.call(cells[i]) // state evaluation
+		for (i = 0; i < len; ++i) states[cells[i].state = cells[i].nextState]; // state transition
 		return states;
 	}
+};
 
+var Automaton = function(height_, width_) {
+
+	var self = {},
+		u = AutomatonUtil,
+		rule = null,
+		cells = u.genCells(height_, width_);
+
+	self.update = function(){
+		u.updateCells(cells, rule);
+	}
+
+	self.rule = function(arg){
+		if (typeof arg == 'function') rule = arg;
+		return rule;
+	}
+
+	return self;
 }
