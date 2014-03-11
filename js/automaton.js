@@ -1,10 +1,52 @@
 // TODO: AutomatonUtil <> Automaton, similar relation between obj & class in Scala?
 
 var AutomatonRule = {
-
+	// helper
+	sumStates: function() {
+		var i = 0,
+			sum = this.state,
+			numNeighbors = this.neighbors.length;
+		for (; i < numNeighbors; ++i)
+			sum += this.neighbors[i].state;
+		return sum;
+	},
 	// rule: "STATE IS NUMBER OF NEIGHBORS" for debug
 	countNeighbors: function() {
 		this.nextState = this.neighbors.length;
+	},
+
+	bz: function(q, k1, k2, g) {
+
+		if (this.state == q) {
+			// (iv) A cell in state q changes to state 1.
+			return this.nextState = 1;
+		}
+
+		var s1 = 0,
+			sq = 0,
+			sbetween = 0,
+			c = null,
+			i = 0,
+			numNeighbors = this.neighbors.length;
+
+		for (; i < numNeighbors; ++i) {
+			c = this.neighbors[i];
+			if (c.state == 1)++s1;
+			else if (c.state == q)++sq;
+			else ++sbetween;
+		}
+
+		if (this.state == 1) {
+			// (v) A cell in state 1 changes to state a/k1 + b/k2 + 1 where a is the number of neighbors of the cell 
+			// which are in states 2 through q-1 and b is the number of neighbors in state q.
+			this.nextState = sbetween / k1 + sq / k2 + 1;
+		} else {
+			// (vi) A cell in any of states 2 through q-1 changes to S/(9 - c) + g, where S is the sum of the states 
+			// of the cell and its neighbors and c is the number of neighbors in state 1.
+			this.nextState = AutomatonRule.sumStates.call(this) / (numNeighbors + 1 - s1) + g;
+		}
+		// (vii) If the application of rule (v) or rule (vi) would result in a cell having a state > q then the state of that cell becomes q.
+		this.nextState = Math.round(Math.min(q, this.nextState));
 	}
 }
 
