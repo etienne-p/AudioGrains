@@ -1,63 +1,54 @@
 // TODO: AutomatonUtil <> Automaton, similar relation between obj & class in Scala?
 
-var AutomatonRules = {
+var AutomatonRule = {
 
 	// rule: "STATE IS NUMBER OF NEIGHBORS" for debug
 	countNeighbors: function() {
-		nextState = neighbors.length;
+		this.nextState = this.neighbors.length;
 	}
 }
 
 var AutomatonUtil = {
 
 	// generate a data structure representing cells and their neighbors
-	genCells: function(height_, width_) {
+	genCells: function(width, height) {
 
 		// init cells
 		var cells = [],
 			i = 0,
-			nCells = height_ * width_;
+			nCells = height * width;
 
 		for (i; i < nCells; ++i) cells[i] = {
 			state: 0,
 			nextState: 0
 		};
 
+		function getIndex(x_, y_) {
+			return (x_ > -1 && x_ < width && y_ > -1 && y_ < height) ? y_ * width + x_ : -1;
+		}
+
 		// ref neighbors
 		var neighbors = null,
-			cell = null,
-			dLine, dIndex, index,
+			nIndex = null,
 			j = 0,
-			neighborIndexes = [-1, -width_ - 1, // top left 
-				-1, -width_, // top
-				-1, -width_ + 1, // top right
-				0, -1, // left
-				0, 1, // right
-				1, width_ - 1, // bottom left 
-				1, width_, // bottom
-				1, width_ + 1 // bottom right
-			];
+			k = 0,
+			x = 0,
+			y = 0;
 
 		for (i = 0; i < nCells; ++i) {
 			neighbors = [];
-			for (j = 0; j < 8; ++j) {
-				dLine = neighborIndexes[j * 2];
-				dIndex = neighborIndexes[j * 2 + 1];
-				index = i + dIndex;
-				if (index > -1 && index < nCells && lineOf(index) == lineOf(i + dLine))
-					neighbors.push(cells[index]);
+			x = i % width;
+			y = Math.floor(i / width);
+			for (j = -1; j < 2; ++j) {
+				for (k = -1; k < 2; ++k) {
+					if ((nIndex = getIndex(x + j, y + k)) != -1 && nIndex != i)
+						neighbors.push(cells[nIndex]);
+				}
 			}
+			console.log(neighbors.length);
 			cells[i].neighbors = neighbors;
 		}
 		return cells;
-	},
-
-	lineOf: function(width_, index_) {
-		return Math.floor(index / width_);
-	},
-
-	columnOf: function(height_, width_, index_) {
-		return index % width_;
 	},
 
 	// returns an array representing latest cells state
@@ -65,36 +56,37 @@ var AutomatonUtil = {
 		var len = cells.length,
 			i = 0,
 			states = [];
-		for (; i < len; ++i) rule.call(cells[i]) // state evaluation
-		for (i = 0; i < len; ++i) states[cells[i].state = cells[i].nextState]; // state transition
+		for (i = 0; i < len; ++i) rule.call(cells[i]) // state evaluation
+		for (i = 0; i < len; ++i) states[i] = cells[i].state = cells[i].nextState; // state transition
 		return states;
 	}
 };
 
-function mixin(ctx, obj){
-	for (var prop in obj){
-		if (obj.hasOwnProperty(prop)){
-			if (!ctx.hasOwnProperty(prop)){
+function mixin(ctx, obj) {
+	for (var prop in obj) {
+		if (obj.hasOwnProperty(prop)) {
+			if (!ctx.hasOwnProperty(prop)) {
 				ctx[prop] = obj[prop];
-			}
-			else throw 'mixin failed, property [' + prop +'] already exists on target';
+			} else throw 'mixin failed, property [' + prop + '] already exists on target';
 		}
 	}
 }
 
 var Automaton = function(height_, width_) {
 
-	mixin(this, AutomatonUtil);
+	//console.log(this);
+
+	//mixin(this, AutomatonUtil);
 
 	var self = {},
 		rule = null,
-		cells = genCells(height_, width_);
+		cells = AutomatonUtil.genCells(height_, width_);
 
-	self.update = function(){
-		u.updateCells(cells, rule);
+	self.update = function() {
+		return AutomatonUtil.updateCells(cells, rule);
 	}
 
-	self.rule = function(arg){
+	self.rule = function(arg) {
 		if (typeof arg == 'function') rule = arg;
 		return rule;
 	}
