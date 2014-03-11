@@ -35,18 +35,42 @@ function main() {
 	});
 	automaton.rule = AutomatonRule.bz;
 
-	var generators = [];
+	var audioContext = lib.AudioUtil.getContext();
 
-	function updateGenerators(){
-
+	function getCellsRect(x, y, w, h) {
+		var rv = [],
+			i, j;
+		for (i = 0; i < h; ++i) {
+			for (j = 0; j < w; ++j) {
+				rv[i * w + j] = automaton.getCellAt(x + j, y + i);
+			}
+		}
+		return rv;
 	}
 
-	function loop() {
+	var generators = [],
+		merger = audioContext.createChannelMerger(),
+		i = 0,
+		nGen = 12;
+	for (; i < 8; ++i) {
+		generators[i] = new AudioGenerator(audioContext);
+		generators[i].cells = getCellsRect(i % 4, Math.floor(i % 2), 4, 4);
+		generators[i].connect(merger);
+		generators[i].start();
+	}
+
+	merger.connect(audioContext.destination);
+
+	var fps = new lib.FPS();
+
+	fps.tick.add(function(dt) {
+		var i = generators.length
+		while (i--) generators[i].update(dt);
 		render(canvas, w, h, automaton.update(args));
-		updateGenerators();
-		requestAnimationFrame(loop);
-	}
-	loop();
+	});
+
+	fps.enabled(true);
+
 }
 
 window.onload = main;

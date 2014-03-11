@@ -12,25 +12,31 @@ var AudioGenerator = function(audioContext) {
 
 AudioGenerator.prototype = {
 
-	AudioGenerator.constructor: AudioGenerator,
+	constructor: AudioGenerator,
+
+	start: function() {
+		this._oscillator.start(0);
+	},
 
 	// update audio nodes depending on cells
-	update: function() {
+	update: function(dt) {
 
 		var i = 0,
 			len = this.cells.length,
 			avrgCell = 0;
 		for (; i < len; ++i) avrgCell += this.cells[i].state; // evaluate average stateCell
+		avrgCell /= 1 + len;
 
 		var now = this._context.currentTime,
-			gain = 0,
-			freq = 0;
+			gain = 0.5 * avrgCell / 255,
+			freq = 50 + 10000 * avrgCell / 255,
+			delay = now + dt * 0.5 / 1000;
 		//this._gain.gain.cancelScheduledValues(now); useful?
-		this._gain.gain.linearRampToValueAtTime(gain, now + this.grainDuration);
-		this._oscillator.frequency.linearRampToValueAtTime(freq, now + this.grainDuration);
+		this._gain.gain.linearRampToValueAtTime(gain, delay);
+		this._oscillator.frequency.linearRampToValueAtTime(freq, delay);
 
 		this.prevAvrgCell = avrgCell;
-	}
+	},
 
 	connect: function(arg) {
 		this._gain.connect(arg);

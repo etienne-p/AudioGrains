@@ -6,7 +6,7 @@ lib.AudioUtil = {
 		} else if ('AudioContext' in window) {
 			rv = new AudioContext();
 		}
-		TTable.AudioUtil.getContext = function() {
+		lib.AudioUtil.getContext = function() {
 			return rv;
 		}
 		return rv;
@@ -18,7 +18,7 @@ lib.AudioUtil = {
 				alert('decodeAudioData failed!');
 			},
 			loadCompleteHandler = function() {
-				TTable.AudioUtil.getContext().decodeAudioData(req.response, callback_, onError);
+				lib.AudioUtil.getContext().decodeAudioData(req.response, callback_, onError);
 			};
 		req.open('GET', url_, true);
 		req.responseType = 'arraybuffer';
