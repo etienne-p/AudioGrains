@@ -1,0 +1,13 @@
+1 buffer = n * automata state (n = 2 * int || 1 / 2 * int)
+audio engine requests automata updates
+graphics engine draw current auotmata state on screen, in case in changed
+(automata refresh rate is independant from animation rate)
+
+audio engine can tell automata: "i expect 2048 samples per update"
+
+bufLen / rate = grainLength
+
+automata:
+  n audioGen
+    owning n cells
+      to compute a grain
