@@ -11,3 +11,6 @@ automata:
   n audioGen
     owning n cells
       to compute a grain
+
+grain uses an oscillator and a gain
+how do we modulate pitch and gain ?

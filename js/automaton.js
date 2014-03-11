@@ -54,6 +54,10 @@ var AutomatonRule = {
 // http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/
 var AutomatonUtil = (function() {
 
+	function getIndex(x, y, width, height) {
+		return (x > -1 && x < width && y > -1 && y < height) ? y * width + x : -1;
+	}
+
 	// generate a data structure representing cells and their neighbors
 	function genCells(width, height, stateInit) {
 
@@ -70,10 +74,6 @@ var AutomatonUtil = (function() {
 			nextState: 0
 		};
 
-		function getIndex(x_, y_) {
-			return (x_ > -1 && x_ < width && y_ > -1 && y_ < height) ? y_ * width + x_ : -1;
-		}
-
 		// ref neighbors
 		var neighbors = null,
 			nIndex = null,
@@ -88,7 +88,7 @@ var AutomatonUtil = (function() {
 			y = Math.floor(i / width);
 			for (j = -1; j < 2; ++j) {
 				for (k = -1; k < 2; ++k) {
-					if ((nIndex = getIndex(x + j, y + k)) != -1 && nIndex != i)
+					if ((nIndex = this.getIndex(x + j, y + k, width, height)) != -1 && nIndex != i)
 						neighbors.push(cells[nIndex]);
 				}
 			}
@@ -108,6 +108,7 @@ var AutomatonUtil = (function() {
 	}
 
 	return function() {
+		this.getIndex = getIndex;
 		this.genCells = genCells;
 		this.updateCells = updateCells;
 		return this;
@@ -128,6 +129,10 @@ Automaton.prototype = {
 	},
 	update: function(args) {
 		return this.updateCells(this.cells, this.rule, args);
+	},
+	getCellAt: function(x, y){
+		var index = this.getIndex(x, y, this.width, this.height)
+		return index > -1 && index < this.cells.length ? this.cells[index] : null;
 	}
 }
 

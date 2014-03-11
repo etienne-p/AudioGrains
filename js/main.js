@@ -13,8 +13,8 @@ function render(canvas, w, h, cells) {
 
 function main() {
 
-	var w = 20,
-		h = 10,
+	var w = 4 * 4,
+		h = 4 * 2,
 		canvas = document.createElement('canvas'),
 		automaton = new Automaton(w, h);
 
@@ -35,8 +35,15 @@ function main() {
 	});
 	automaton.rule = AutomatonRule.bz;
 
+	var generators = [];
+
+	function updateGenerators(){
+
+	}
+
 	function loop() {
 		render(canvas, w, h, automaton.update(args));
+		updateGenerators();
 		requestAnimationFrame(loop);
 	}
 	loop();
