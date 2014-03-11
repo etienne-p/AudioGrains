@@ -6,7 +6,7 @@ lib.Signal = function() {
 
 lib.Signal.prototype = {
 
-    constructor: TTable.Signal,
+    constructor: lib.Signal,
 
     dispatch: function(arg_) {
         var i = this._bindings.length,

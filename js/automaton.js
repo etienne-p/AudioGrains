@@ -8,10 +8,12 @@ var AutomatonRule = {
 	}
 }
 
-var AutomatonUtil = {
+// a funcitonal mixin with caching
+// http://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/
+var AutomatonUtil = (function() {
 
 	// generate a data structure representing cells and their neighbors
-	genCells: function(width, height) {
+	function genCells(width, height) {
 
 		// init cells
 		var cells = [],
@@ -49,10 +51,10 @@ var AutomatonUtil = {
 			cells[i].neighbors = neighbors;
 		}
 		return cells;
-	},
+	}
 
 	// returns an array representing latest cells state
-	updateCells: function(cells, rule) {
+	function updateCells(cells, rule) {
 		var len = cells.length,
 			i = 0,
 			states = [];
@@ -60,36 +62,24 @@ var AutomatonUtil = {
 		for (i = 0; i < len; ++i) states[i] = cells[i].state = cells[i].nextState; // state transition
 		return states;
 	}
-};
 
-function mixin(ctx, obj) {
-	for (var prop in obj) {
-		if (obj.hasOwnProperty(prop)) {
-			if (!ctx.hasOwnProperty(prop)) {
-				ctx[prop] = obj[prop];
-			} else throw 'mixin failed, property [' + prop + '] already exists on target';
-		}
+	return function() {
+		this.genCells = genCells;
+		this.updateCells = updateCells;
+		return this;
 	}
-}
+})();
 
 var Automaton = function(height_, width_) {
-
-	//console.log(this);
-
-	//mixin(this, AutomatonUtil);
-
-	var self = {},
-		rule = null,
-		cells = AutomatonUtil.genCells(height_, width_);
-
-	self.update = function() {
-		return AutomatonUtil.updateCells(cells, rule);
-	}
-
-	self.rule = function(arg) {
-		if (typeof arg == 'function') rule = arg;
-		return rule;
-	}
-
-	return self;
+	this.rule = null,
+	this.cells = this.genCells(height_, width_);
 }
+
+Automaton.prototype = {
+	constructor: Automaton,
+	update: function() {
+		return this.updateCells(this.cells, this.rule);
+	}
+}
+
+AutomatonUtil.call(Automaton.prototype);

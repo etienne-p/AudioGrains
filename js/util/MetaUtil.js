@@ -15,6 +15,15 @@ lib.MetaUtil = {
 			'	return this.' + value + ';'
 		];
 		Obj.prototype[name] = new Function('arg', fBody.join(''));
-	}
+	},
 
+	mixin: function(ctx, obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				if (!ctx.hasOwnProperty(prop)) {
+					ctx[prop] = obj[prop];
+				} else throw 'mixin failed, property [' + prop + '] already exists on target';
+			}
+		}
+	}
 }

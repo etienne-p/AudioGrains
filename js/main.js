@@ -20,14 +20,13 @@ function main() {
 
 	document.getElementsByTagName('body')[0].appendChild(canvas);
 
-	automaton.rule(AutomatonRule.countNeighbors);
+	automaton.rule = AutomatonRule.countNeighbors;
 
 	function loop() {
 		render(canvas, w, h, automaton.update());
 		//requestAnimationFrame(loop);
 	}
 	loop();
-
 }
 
 window.onload = main;

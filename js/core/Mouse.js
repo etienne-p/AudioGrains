@@ -20,7 +20,7 @@ lib.Mouse = function(isMobile, element) {
 		},
 		signals = {},
 		handlers = {},
-		mouseMoveSignal = new TTable.Signal(),
+		mouseMoveSignal = new lib.Signal(),
 		xOffset = 0,
 		yOffset = 0;
 
@@ -36,7 +36,7 @@ lib.Mouse = function(isMobile, element) {
 	var as = null;
 	for (var i = data.length - 1; i > -1; --i) {
 		as = data[i].as;
-		self[as] = signals[as] = new TTable.Signal();
+		self[as] = signals[as] = new lib.Signal();
 		self[as].value = position;
 		handlers[as] = getHandler(as);
 	}

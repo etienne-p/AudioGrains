@@ -6,6 +6,8 @@ lib.List = function(arr_) {
 
 lib.List.prototype = {
 
+    constructor: lib.List,
+
     prepend: function(data_) {
         var node = {
             data: data_,
