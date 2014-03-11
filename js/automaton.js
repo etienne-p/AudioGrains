@@ -55,15 +55,18 @@ var AutomatonRule = {
 var AutomatonUtil = (function() {
 
 	// generate a data structure representing cells and their neighbors
-	function genCells(width, height) {
+	function genCells(width, height, stateInit) {
 
 		// init cells
 		var cells = [],
 			i = 0,
-			nCells = height * width;
+			nCells = height * width,
+			stateInit = typeof stateInit == 'function' ? stateInit : function() {
+				return 0;
+			};
 
 		for (i; i < nCells; ++i) cells[i] = {
-			state: 0,
+			state: stateInit(),
 			nextState: 0
 		};
 
@@ -89,18 +92,17 @@ var AutomatonUtil = (function() {
 						neighbors.push(cells[nIndex]);
 				}
 			}
-			console.log(neighbors.length);
 			cells[i].neighbors = neighbors;
 		}
 		return cells;
 	}
 
 	// returns an array representing latest cells state
-	function updateCells(cells, rule) {
+	function updateCells(cells, rule, args) {
 		var len = cells.length,
 			i = 0,
 			states = [];
-		for (i = 0; i < len; ++i) rule.call(cells[i]) // state evaluation
+		for (i = 0; i < len; ++i) rule.apply(cells[i], args) // state evaluation
 		for (i = 0; i < len; ++i) states[i] = cells[i].state = cells[i].nextState; // state transition
 		return states;
 	}
@@ -113,14 +115,19 @@ var AutomatonUtil = (function() {
 })();
 
 var Automaton = function(height_, width_) {
-	this.rule = null,
-	this.cells = this.genCells(height_, width_);
+	this.rule = null;
+	this.cells = null;
+	this.height = height_;
+	this.width = width_;
 }
 
 Automaton.prototype = {
 	constructor: Automaton,
-	update: function() {
-		return this.updateCells(this.cells, this.rule);
+	init: function(initState){
+		this.cells = this.genCells(this.height, this.width, initState);
+	},
+	update: function(args) {
+		return this.updateCells(this.cells, this.rule, args);
 	}
 }
 

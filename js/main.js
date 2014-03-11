@@ -13,18 +13,31 @@ function render(canvas, w, h, cells) {
 
 function main() {
 
-	var w = 6,
-		h = 4,
+	var w = 20,
+		h = 10,
 		canvas = document.createElement('canvas'),
 		automaton = new Automaton(w, h);
 
 	document.getElementsByTagName('body')[0].appendChild(canvas);
 
-	automaton.rule = AutomatonRule.countNeighbors;
+	function rndInt(min, max) {
+		return Math.floor(min + (max - min) * Math.random());
+	}
+
+	var q = rndInt(2, 255),
+		k1 = rndInt(1, 8),
+		k2 = rndInt(1, 8),
+		g = rndInt(0, 100),
+		args = [q, k1, k2, g];
+
+	automaton.init(function() {
+		return rndInt(1, q);
+	});
+	automaton.rule = AutomatonRule.bz;
 
 	function loop() {
-		render(canvas, w, h, automaton.update());
-		//requestAnimationFrame(loop);
+		render(canvas, w, h, automaton.update(args));
+		requestAnimationFrame(loop);
 	}
 	loop();
 }
