@@ -59,18 +59,15 @@ var AutomatonUtil = (function() {
 	}
 
 	// generate a data structure representing cells and their neighbors
-	function genCells(width, height, stateInit) {
+	function genCells(width, height, initValues) {
 
 		// init cells
 		var cells = [],
 			i = 0,
-			nCells = height * width,
-			stateInit = typeof stateInit == 'function' ? stateInit : function() {
-				return 0;
-			};
+			nCells = height * width;
 
 		for (i; i < nCells; ++i) cells[i] = {
-			state: stateInit(),
+			state: initValues[i],
 			nextState: 0
 		};
 
@@ -124,8 +121,8 @@ var Automaton = function(width, height) {
 
 Automaton.prototype = {
 	constructor: Automaton,
-	init: function(initState){
-		this.cells = this.genCells(this.height, this.width, initState);
+	init: function(values){
+		this.cells = this.genCells(this.height, this.width, values);
 	},
 	update: function(args) {
 		return this.updateCells(this.cells, this.rule, args);

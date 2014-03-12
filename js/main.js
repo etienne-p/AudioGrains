@@ -32,9 +32,25 @@ function main() {
 		g = rndInt(0, 100),
 		args = [q, k1, k2, g];
 
-	automaton.init(function() {
-		return rndInt(1, q);
-	});
+	var initValues = (function() {
+		var i = 0,
+			len = w * h,
+			rv = [];
+		for (; i < len; ++i) rv[i] = rndInt(1, q);
+		return rv;
+	})();
+
+	// print config to console:
+	var cfg = {
+		initValues: initValues,
+		q: q,
+		k1: k1,
+		k2: k2,
+		g: g
+	};
+	console.log(JSON.stringify(cfg));
+
+	automaton.init(initValues);
 	automaton.rule = AutomatonRule.bz;
 
 	var audioContext = lib.AudioUtil.getContext();
