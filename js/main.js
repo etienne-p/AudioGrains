@@ -54,10 +54,13 @@ function main() {
 
 	var generators = [],
 		merger = audioContext.createChannelMerger(),
-		i = 0, x = 0, y = 0;
+		i = 0,
+		x = 0,
+		y = 0;
 	for (; i < 8; ++i) {
 		generators[i] = new AudioGenerator(audioContext);
-		generators[i].cells = getCellsRect(x = 4 * (i % 4), y = 4 * Math.floor(i / 4), 4, 4);
+		//generators[i].cells = getCellsRect(x = 4 * (i % 4), y = 4 * Math.floor(i / 4), 1, 1);
+		generators[i].cell = automaton.getCellAt(x = 4 * (i % 4), y = 4 * Math.floor(i / 4));
 		console.log('x: [' + x + '] y: [' + y + ']');
 		generators[i].connect(merger);
 		generators[i].start();
@@ -67,7 +70,7 @@ function main() {
 
 	var fps = new lib.FPS(),
 		latestCells = automaton.update(args),
-		automatonUpdateDelay = 500;
+		automatonUpdateDelay = 200;
 
 	function updateAutomaton() {
 		latestCells = automaton.update(args);

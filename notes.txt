@@ -14,3 +14,5 @@ automata:
 
 grain uses an oscillator and a gain
 how do we modulate pitch and gain ?
+
+TODO: save CFG to remember patterns
