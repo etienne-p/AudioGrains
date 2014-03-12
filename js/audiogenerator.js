@@ -28,8 +28,8 @@ AudioGenerator.prototype = {
 		avrgCell /= 1 + len;
 
 		var now = this._context.currentTime,
-			gain = 0.5 * avrgCell / 255,
 			freq = 50 + 10000 * avrgCell / 255,
+			gain = Math.pow(Math.E, -freq / 20000) * 0.5 * avrgCell / 255, // basic constant loudness
 			delay = now + dt * 0.5 / 1000;
 		//this._gain.gain.cancelScheduledValues(now); useful?
 		this._gain.gain.linearRampToValueAtTime(gain, delay);
