@@ -28,12 +28,15 @@ AudioGenerator.prototype = {
 		avrgCell /= 1 + len;
 
 		var now = this._context.currentTime,
-			freq = 50 + 10000 * avrgCell / 255,
-			gain = Math.pow(Math.E, -freq / 20000) * 0.5 * avrgCell / 255, // basic constant loudness
+			freq = 50 + 12000 * avrgCell / 255,
+			gain = Math.pow(Math.E, -freq / 500) * 0.5 * avrgCell / 255, // basic constant loudness
 			delay = now + dt * 0.5 / 1000;
-		//this._gain.gain.cancelScheduledValues(now); useful?
-		this._gain.gain.linearRampToValueAtTime(gain, delay);
-		this._oscillator.frequency.linearRampToValueAtTime(freq, delay);
+		//this._gain.gain.cancelScheduledValues(now); //useful?
+		//this._gain.gain.linearRampToValueAtTime(gain, delay);
+		this._gain.gain.value = gain;
+		//this._oscillator.frequency.cancelScheduledValues(now); //useful?
+		//this._oscillator.frequency.linearRampToValueAtTime(freq, delay);
+		this._oscillator.frequency.value = freq;
 
 		this.prevAvrgCell = avrgCell;
 	},

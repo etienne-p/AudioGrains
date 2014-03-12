@@ -115,11 +115,11 @@ var AutomatonUtil = (function() {
 	}
 })();
 
-var Automaton = function(height_, width_) {
+var Automaton = function(width, height) {
 	this.rule = null;
 	this.cells = null;
-	this.height = height_;
-	this.width = width_;
+	this.width = width;
+	this.height = height;
 }
 
 Automaton.prototype = {

@@ -5,9 +5,11 @@ function render(canvas, w, h, cells) {
 		len = cells.length;
 
 	ctx.clearRect(0, 0, (canvas.width = w * side), (canvas.height = h * side));
-	ctx.font = "12px Arial bold";
+
 	for (i = 0; i < len; ++i) {
-		ctx.fillText(cells[i], side * (i % w), 20 + side * Math.floor(i / w));
+		val = cells[i];
+		ctx.fillStyle = 'rgb(' + val + ',' + val + ',' + val + ')';
+		ctx.fillRect(side * (i % w), 20 + side * Math.floor(i / w), side, side);
 	}
 }
 
@@ -39,10 +41,12 @@ function main() {
 
 	function getCellsRect(x, y, w, h) {
 		var rv = [],
-			i, j;
+			i, j, cell;
 		for (i = 0; i < h; ++i) {
 			for (j = 0; j < w; ++j) {
-				rv[i * w + j] = automaton.getCellAt(x + j, y + i);
+				cell = automaton.getCellAt(x + j, y + i);
+				if (cell) rv.push(cell);
+				else throw 'failed at retrieving cell, x: [' + (x + j) + '] y: [' + (y + i) + ']'
 			}
 		}
 		return rv;
@@ -50,23 +54,33 @@ function main() {
 
 	var generators = [],
 		merger = audioContext.createChannelMerger(),
-		i = 0,
-		nGen = 12;
+		i = 0, x = 0, y = 0;
 	for (; i < 8; ++i) {
 		generators[i] = new AudioGenerator(audioContext);
-		generators[i].cells = getCellsRect(i % 4, Math.floor(i % 2), 4, 4);
+		generators[i].cells = getCellsRect(x = 4 * (i % 4), y = 4 * Math.floor(i / 4), 4, 4);
+		console.log('x: [' + x + '] y: [' + y + ']');
 		generators[i].connect(merger);
 		generators[i].start();
 	}
 
 	merger.connect(audioContext.destination);
 
-	var fps = new lib.FPS();
+	var fps = new lib.FPS(),
+		latestCells = automaton.update(args),
+		automatonUpdateDelay = 500;
+
+	function updateAutomaton() {
+		latestCells = automaton.update(args);
+		var i = generators.length
+		while (i--) generators[i].update();
+		//updateAutomaton(); // uncomment -> browser implodes
+		setTimeout(updateAutomaton, automatonUpdateDelay);
+	}
+
+	updateAutomaton();
 
 	fps.tick.add(function(dt) {
-		var i = generators.length
-		while (i--) generators[i].update(dt);
-		render(canvas, w, h, automaton.update(args));
+		render(canvas, w, h, latestCells);
 	});
 
 	fps.enabled(true);
