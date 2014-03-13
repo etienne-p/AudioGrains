@@ -1,3 +1,4 @@
+// helpers
 function render(canvas, w, h, cells) {
 	var side = 20,
 		ctx = canvas.getContext('2d'),
@@ -13,24 +14,34 @@ function render(canvas, w, h, cells) {
 	}
 }
 
-function main() {
-
-	var w = 4 * 4,
-		h = 4 * 2,
-		canvas = document.createElement('canvas'),
-		automaton = new Automaton(w, h);
-
-	document.getElementsByTagName('body')[0].appendChild(canvas);
-
-	function rndInt(min, max) {
-		return Math.floor(min + (max - min) * Math.random());
+function getCellsRect(automaton, x, y, w, h) {
+	var rv = [],
+		i, j, cell;
+	for (i = 0; i < h; ++i) {
+		for (j = 0; j < w; ++j) {
+			cell = automaton.getCellAt(x + j, y + i);
+			if (cell) rv.push(cell);
+			else throw 'failed at retrieving cell, x: [' + (x + j) + '] y: [' + (y + i) + ']'
+		}
 	}
+	return rv;
+}
+
+function rndInt(min, max) {
+	return Math.floor(min + (max - min) * Math.random());
+}
+
+function setupAutomaton(w, h) {
+
+	var automaton = new Automaton(w, h);
 
 	var q = rndInt(2, 255),
 		k1 = rndInt(1, 8),
 		k2 = rndInt(1, 8),
-		g = rndInt(0, 100),
-		args = [q, k1, k2, g];
+		g = rndInt(0, 100);
+
+	// TODO: HACK
+	window.args = [q, k1, k2, g];
 
 	var initValues = (function() {
 		var i = 0,
@@ -49,61 +60,61 @@ function main() {
 		g: g
 	};
 	console.log(JSON.stringify(cfg));
-
 	automaton.init(initValues);
 	automaton.rule = AutomatonRule.bz;
+	return automaton;
+}
 
-	var audioContext = lib.AudioUtil.getContext();
+function addSamplePlayer(audioContext, lBuf, rBuf, destination) {
+	var samplePlayer = new lib.SamplePlayer(lBuf, rBuf),
+		scriptProcessor = audioContext.createScriptProcessor(1024, 0, 2);
 
-	function getCellsRect(x, y, w, h) {
-		var rv = [],
-			i, j, cell;
-		for (i = 0; i < h; ++i) {
-			for (j = 0; j < w; ++j) {
-				cell = automaton.getCellAt(x + j, y + i);
-				if (cell) rv.push(cell);
-				else throw 'failed at retrieving cell, x: [' + (x + j) + '] y: [' + (y + i) + ']'
-			}
-		}
-		return rv;
-	}
+	scriptProcessor.onaudioprocess = samplePlayer.processAudio;
+	scriptProcessor.connect(destination);
 
-	var generators = [],
+	// store to workaround buggy garbage collection
+	(window.scriptProcessors = window.scriptProcessors || []).push(scriptProcessor);
+
+	return samplePlayer;
+}
+
+
+function main(buffer) {
+
+	var w = 4 * 4,
+		h = 4 * 2, // so we have 1024 cells
+		canvas = document.createElement('canvas');
+	document.getElementsByTagName('body')[0].appendChild(canvas);
+
+	var automaton = setupAutomaton(w, h),
+		audioContext = lib.AudioUtil.getContext(),
 		merger = audioContext.createChannelMerger(),
-		i = 0,
-		x = 0,
-		y = 0;
-	for (; i < 8; ++i) {
-		generators[i] = new AudioGenerator(audioContext);
-		//generators[i].cells = getCellsRect(x = 4 * (i % 4), y = 4 * Math.floor(i / 4), 1, 1);
-		generators[i].cell = automaton.getCellAt(x = 4 * (i % 4), y = 4 * Math.floor(i / 4));
-		console.log('x: [' + x + '] y: [' + y + ']');
-		generators[i].connect(merger);
-		generators[i].start();
-	}
+		lBuf = buffer.getChannelData(0),
+		rBuf = buffer.getChannelData(1),
+		latestCells = null,
+		sp = addSamplePlayer(audioContext, lBuf, rBuf, merger);
 
 	merger.connect(audioContext.destination);
-
-	var fps = new lib.FPS(),
-		latestCells = automaton.update(args),
-		automatonUpdateDelay = 200;
+	// add audio
 
 	function updateAutomaton() {
-		latestCells = automaton.update(args);
-		var i = generators.length
-		while (i--) generators[i].update();
-		//updateAutomaton(); // uncomment -> browser implodes
-		setTimeout(updateAutomaton, automatonUpdateDelay);
-	}
+		latestCells = automaton.update(window.args);
+		var cell = latestCells[0];
+		//sp.setAmp(cell / 255);
+		sp.setRate(1 + 2 * (cell / 255 - 0.5));
+		setTimeout(updateAutomaton, 30);
+	};
 
-	updateAutomaton();
-
+	// add UI animation
+	var fps = new lib.FPS();
 	fps.tick.add(function(dt) {
 		render(canvas, w, h, latestCells);
 	});
 
+	updateAutomaton();
 	fps.enabled(true);
-
 }
 
-window.onload = main;
+window.onload = function() {
+	lib.AudioUtil.loadSample('media/loop.wav', main);
+};

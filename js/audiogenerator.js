@@ -22,10 +22,12 @@ AudioGenerator.prototype = {
 	update: function(dt) {
 
 		var cell = this.cell.state,
-			freq = 50 + 12000 * cell / 255,
-			gain = Math.pow(Math.E, -freq / 500) * 0.5 * cell / 255; // basic constant loudness
+			freq = Music.note(cell / 255),
+			gain = Math.pow(Math.E, -freq / 12000) * 0.5 * cell / 255;
+
 		this._gain.gain.value = gain;
-		this._oscillator.frequency.value = freq;
+		this._oscillator.frequency.value =freq;
+
 		this.prevAvrgCell = cell;
 	},
 
