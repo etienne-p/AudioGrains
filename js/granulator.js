@@ -9,6 +9,11 @@ var GranulatorUtil = (function() {
 		return 0.5 * (1 + Math.cos(Math.PI * (2 * x + 1)));
 	}
 
+	/*function gaussianEnv(x){
+		var b = 0.5, c = 0.12;
+		return Math.exp(- (x - b) * (x - b) / (2 * c * c))
+	}*/
+
 	// returns an array
 	function genEnv(length) {
 		var i = 0,
@@ -77,15 +82,18 @@ var GranulatorUtil = (function() {
 	};
 })();
 
-var Granulator = function(count, length, sampler) {
-	this.grains = this.genEmptyGrains(count, length);
+var Granulator = function(sampler) {
 	this.sampler = sampler;
-	this._envelope = this.genEnv(length); // cache a single envelope
 }
 
 Granulator.prototype = {
 
 	constructor: Granulator,
+
+	updateGrains: function(count, length) {
+		this.grains = this.genEmptyGrains(count, length);
+		this._envelope = this.genEnv(length); // cache a single envelope
+	},
 
 	requestFrameData: function() {
 		throw 'requestFrameData should be overriden';
@@ -94,6 +102,10 @@ Granulator.prototype = {
 	// in fact, the script processor using the granulator is responsible for requesting frame data
 	processAudio: function(outputBufferL, outputBufferR, frameData) {
 
+		// TODO: CHROME ISSUE: buffer seems to be reused, and needs exploicit reset
+		var i = 0; len = outputBufferL.length;
+		for (; i < len; ++i) outputBufferL[i] = outputBufferR[i] = 0;
+		
 		// addGrainsToBuffer(grains, rates, delays, posRatios, sampler, bufLeft, bufRight) {
 		this.addGrainsToBuffer(
 			this.grains,

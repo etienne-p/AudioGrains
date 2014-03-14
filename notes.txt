@@ -16,3 +16,5 @@ grain uses an oscillator and a gain
 how do we modulate pitch and gain ?
 
 TODO: save CFG to remember patterns
+
+BUG CHROME: buffer du scriptnode n'est pas vidé, il faut le faire explicitement

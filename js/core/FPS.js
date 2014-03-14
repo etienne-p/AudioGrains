@@ -4,8 +4,8 @@ lib.FPS = function() {
 		self = {},
 		time = 0,
 		tick = new lib.Signal(),
-		paused = new lib.Signal(),
-		resumed = new lib.Signal();
+		pausedS = new lib.Signal(),
+		resumedS = new lib.Signal();
 
 	function loop() {
 		if (paused) return;
@@ -21,17 +21,17 @@ lib.FPS = function() {
 		if (val) {
 			time = Date.now();
 			paused = false;
-			resumed.dispatch();
+			resumedS.dispatch();
 			loop();
 		} else {
 			paused = true;
-			paused.dispatch();
+			pausedS.dispatch();
 		}
 	}
 
 	self.tick = tick;
-	self.paused = paused;
-	self.resumed = resumed;
+	self.paused = pausedS; // TODO: better...
+	self.resumed = resumedS;
 
 	return self;
 }

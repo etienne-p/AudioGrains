@@ -88,20 +88,22 @@ function main(buffer) {
 
 	var automaton = setupAutomaton(w, h),
 		audioContext = lib.AudioUtil.getContext(),
-		lBuf = buffer.getChannelData(0),
-		rBuf = buffer.getChannelData(1),
+		//lBuf = buffer.getChannelData(0),
+		//rBuf = buffer.getChannelData(1),
 		latestCells = automaton.update(window.args),
 		bufferLength = 2048,
 		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
-		sampler = new lib.SamplePlayer(lBuf, rBuf),
-		grainCount = 8,
+		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
+		grainCount = 4,
+		rate = 0.001,
 		pos = 0,
-		grainLength = (15 / 1000) * 44100, // 20ms
-		granulator = new Granulator(grainCount, grainLength, sampler);
+		paused = true,
+		grainLength = (18 / 1000) * 44100, // 20ms
+		granulator = new Granulator(sampler);
 
 	window.xxx = scriptProcessor; // prevent buggy garbage collection
-
-	sampler.amp(0.3);
+	granulator.updateGrains(grainCount, grainLength);
+	sampler.amp(0.8);
 
 	// first test: cache a static one
 	function getFrame() {
@@ -111,8 +113,8 @@ function main(buffer) {
 			posRatios = [];
 		for (; i < grainCount; i++) {
 			rates[i] = 1;
-			delays[i] = (i / grainCount) * bufferLength;
-			posRatios[i] = pos = (pos + 0.001) % 1;
+			delays[i] = Math.floor((i / grainCount) * bufferLength);
+			posRatios[i] = pos = (pos + rate) % 1;
 		}
 		return {
 			rates: rates,
@@ -123,6 +125,7 @@ function main(buffer) {
 
 	function processAudio(e) {
 		latestCells = automaton.update(window.args); // TODO: args as a global var: super shitty, be ashamed
+		// TODO: should return the portion of the frame that isn't completely played = partially future grains!
 		granulator.processAudio(
 			e.outputBuffer.getChannelData(0),
 			e.outputBuffer.getChannelData(1),
@@ -130,7 +133,11 @@ function main(buffer) {
 	};
 
 	scriptProcessor.onaudioprocess = processAudio;
-	scriptProcessor.connect(audioContext.destination);
+
+	function audioPlaying(val) {
+		if (val) scriptProcessor.connect(audioContext.destination);
+		else scriptProcessor.disconnect(audioContext.destination);
+	}
 
 	// add UI animation
 	var fps = new lib.FPS();
@@ -138,7 +145,41 @@ function main(buffer) {
 		render(canvas, w, h, latestCells);
 	});
 
-	fps.enabled(true);
+	// add GUI, dat.gui is designed to operate on public fields
+	// to fit with our design, we introduce a mock object
+	var gui = new dat.GUI(),
+		mock = {
+			grainCount: grainCount,
+			grainLength: grainLength,
+			rate: rate
+		};
+	gui.add(mock, 'grainCount', 1, 20).onChange(function(newValue) {
+		console.log('change');
+		audioPlaying(false);
+		grainCount = Math.floor(newValue);
+		granulator.updateGrains(grainCount, grainLength);
+		audioPlaying(true);
+	});
+	gui.add(mock, 'grainLength', 10, 1000).onChange(function(newValue) {
+		audioPlaying(false);
+		grainLength = Math.floor(newValue);
+		granulator.updateGrains(grainCount, grainLength);
+		audioPlaying(true);
+	});
+	gui.add(mock, 'rate', 0.0001, 0.2).onChange(function(newValue) {
+		rate = newValue;
+	});
+
+	//...
+	function togglePause() {
+		paused = !paused;
+		fps.enabled(!paused);
+		audioPlaying(!paused);
+	}
+
+	window.addEventListener('click', function(){
+		togglePause();
+	})
 }
 
 window.onload = function() {
