@@ -27,14 +27,17 @@ lib.SamplePlayer = function(left, right) {
 
 	return {
 		processAudio: processAudio,
-		posRatio: function() {
+		posRatio: function(arg) {
+			if (typeof arg == 'number') pos = arg * len;
 			return pos / len;
 		},
-		setRate: function(arg) {
-			return rate = arg;
+		rate: function(arg) {
+			if (typeof arg == 'number') rate = arg;
+			return rate;
 		},
-		setAmp: function(arg) {
-			return amp = arg;
+		amp: function(arg) {
+			if (typeof arg == 'number') amp = arg;
+			return amp;
 		},
 	}
 

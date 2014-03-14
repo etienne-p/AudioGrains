@@ -6,7 +6,7 @@ var GranulatorUtil = (function() {
 	// used to generate grain envelopes
 	// x in [0 - 1]
 	function sinEnv(x) {
-		return Math.cos(Math.PI * (2 * x + 1));
+		return 0.5 * (1 + Math.cos(Math.PI * (2 * x + 1)));
 	}
 
 	// returns an array
@@ -14,7 +14,7 @@ var GranulatorUtil = (function() {
 		var i = 0,
 			rv = [],
 			l = length - 1;
-		for (; i < length) rv[i] = sinEnv(i / l);
+		for (; i < length; ++i) rv[i] = sinEnv(i / l);
 		return rv;
 	}
 
@@ -58,7 +58,7 @@ var GranulatorUtil = (function() {
 			rv = [],
 			emptyBuffer = [];
 
-		for (; i < length¸; ++i) emptyBuffer[i] = 0;
+		for (; i < length; ++i) emptyBuffer[i] = 0;
 
 		for (i = 0; i < count; ++i) {
 			rv[i] = {
@@ -66,10 +66,11 @@ var GranulatorUtil = (function() {
 				r: emptyBuffer.slice(0)
 			}
 		}
-		rv;
+		return rv;
 	}
 
 	return function() {
+		this.genEnv = genEnv;
 		this.genEmptyGrains = genEmptyGrains;
 		this.addGrainsToBuffer = addGrainsToBuffer;
 		return this;
@@ -88,15 +89,10 @@ Granulator.prototype = {
 
 	requestFrameData: function() {
 		throw 'requestFrameData should be overriden';
-	}
+	},
 
 	// in fact, the script processor using the granulator is responsible for requesting frame data
 	processAudio: function(outputBufferL, outputBufferR, frameData) {
-
-		// The output buffer contains the samples that will be modified and played
-		/*var outputBufferL = e.outputBuffer.getChannelData(0),
-			outputBufferR = e.outputBuffer.getChannelData(1),
-			frameData = this.requestFrameData(); // request data*/
 
 		// addGrainsToBuffer(grains, rates, delays, posRatios, sampler, bufLeft, bufRight) {
 		this.addGrainsToBuffer(
