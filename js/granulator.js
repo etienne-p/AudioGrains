@@ -19,16 +19,18 @@ var GranulatorUtil = (function() {
 	}
 
 	// supports ANY delay
-	function addGrainToBuffer(grainLeft, grainRight, bufLeft, bufRight, delay) {
+	function addGrainToBuffer(grainLeft, grainRight, bufLeft, bufRight, delay, envelope) {
 		var grainLen = grainLeft.length,
 			bufLen = bufLeft.length,
 			i = delay < 0 ? -delay : 0,
+			mul = 0,
 			len = Math.max(0, Math.min(bufLen - delay, grainLen) - i);
 
 		// sample min: delay max: delay + grainLen buffer min: 0 max: bufLen
 		for (; i < len; ++i) {
-			bufLeft[delay + i] += grainLeft[i];
-			bufRight[delay + i] += grainRight[i];
+			mul = envelope[i];
+			bufLeft[delay + i] += grainLeft[i] * mul;
+			bufRight[delay + i] += grainRight[i] * mul;
 		}
 	}
 
@@ -36,7 +38,7 @@ var GranulatorUtil = (function() {
 	// delays: grain delays (in samples)
 	// posRatios: grains sample atrt ratio
 	// sampler: a sample player responsible for providing audio at proper rate
-	function addGrainsToBuffer(grains, rates, delays, posRatios, sampler, bufLeft, bufRight) {
+	function addGrainsToBuffer(grains, rates, delays, posRatios, sampler, bufLeft, bufRight, envelope) {
 
 		var count = rates.length,
 			i = 0,
@@ -46,7 +48,7 @@ var GranulatorUtil = (function() {
 			sampler.rate(rates[i]);
 			sampler.posRatio(posRatios[i]);
 			sampler.processAudio(grain.l, grain.r);
-			addGrainToBuffer(grain.l, grain.r, bufLeft, bufRight, delays[i]);
+			addGrainToBuffer(grain.l, grain.r, bufLeft, bufRight, delays[i], envelope);
 		}
 	}
 
@@ -75,8 +77,9 @@ var GranulatorUtil = (function() {
 })();
 
 var Granulator = function(count, length, sampler) {
-	this.grains = this.genEmptyGrains();
+	this.grains = this.genEmptyGrains(count, length);
 	this.sampler = sampler;
+	this._envelope = this.genEnv(length); // cache a single envelope
 }
 
 Granulator.prototype = {
@@ -102,7 +105,8 @@ Granulator.prototype = {
 			frameData.posRatios,
 			this.sampler,
 			outputBufferL,
-			outputBufferR);
+			outputBufferR,
+			this._envelope);
 	}
 }
 
