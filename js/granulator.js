@@ -90,12 +90,13 @@ Granulator.prototype = {
 		throw 'requestFrameData should be overriden';
 	}
 
-	onProcessAudio: function(e) {
+	// in fact, the script processor using the granulator is responsible for requesting frame data
+	processAudio: function(outputBufferL, outputBufferR, frameData) {
 
 		// The output buffer contains the samples that will be modified and played
-		var outputBufferL = e.outputBuffer.getChannelData(0),
+		/*var outputBufferL = e.outputBuffer.getChannelData(0),
 			outputBufferR = e.outputBuffer.getChannelData(1),
-			frameData = this.requestFrameData(); // request data
+			frameData = this.requestFrameData(); // request data*/
 
 		// addGrainsToBuffer(grains, rates, delays, posRatios, sampler, bufLeft, bufRight) {
 		this.addGrainsToBuffer(

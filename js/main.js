@@ -88,22 +88,46 @@ function main(buffer) {
 
 	var automaton = setupAutomaton(w, h),
 		audioContext = lib.AudioUtil.getContext(),
-		merger = audioContext.createChannelMerger(),
 		lBuf = buffer.getChannelData(0),
 		rBuf = buffer.getChannelData(1),
 		latestCells = null,
-		sp = addSamplePlayer(audioContext, lBuf, rBuf, merger);
+		bufferLength = 1024,
+		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
+		sampler = new SmaplePlayer(lBuf, rBuf),
+		grainCount = 12,
+		grainLength = 35 / 1000 * 44100, // 35ms
+		granulator = new Granulator(grainCount, grainLength, sampler);
 
-	merger.connect(audioContext.destination);
-	// add audio
+	window.xxx = scriptProcessor; // prevent buggy garbage collection
 
-	function updateAutomaton() {
-		latestCells = automaton.update(window.args);
-		var cell = latestCells[0];
-		//sp.setAmp(cell / 255);
-		sp.setRate(1 + 2 * (cell / 255 - 0.5));
-		setTimeout(updateAutomaton, 30);
+	// first test: cache a static one
+	var frameData = (function() {
+		var i = 0,
+			rates = [],
+			delays = [],
+			posRatios = [];
+		for (; i < grainCount; i++) {
+			rates[i] = 0.5 + Math.random();
+			delays[i] = (i / grainCount) * bufferLength;
+			posRatios[i] = Math.random();
+		}
+		return {
+			rates: rates,
+			delays: delays,
+			posRatios: rates
+		}
+	})();
+
+	function processAudio(e) {
+		latestCells = automaton.update(window.args); // TODO: args as a global var: super shitty, be ashamed
+		granulator.processAudio(
+			e.outputBuffer.getChannelData(0),
+			e.outputBuffer.getChannelData(1),
+			frameData);
 	};
+
+	scriptProcessor.onaudioprocess = processAudio;
+	scriptProcessor.connect(audio.getContext().destination);
 
 	// add UI animation
 	var fps = new lib.FPS();
@@ -111,7 +135,6 @@ function main(buffer) {
 		render(canvas, w, h, latestCells);
 	});
 
-	updateAutomaton();
 	fps.enabled(true);
 }
 
