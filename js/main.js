@@ -40,6 +40,10 @@ function setupAutomaton(w, h) {
 		k2 = rndInt(1, 8),
 		g = rndInt(0, 100);
 
+	k1 = 2;
+	k2 = 7;
+	g = 20;
+
 	// TODO: HACK
 	window.args = [q, k1, k2, g];
 
@@ -65,20 +69,6 @@ function setupAutomaton(w, h) {
 	return automaton;
 }
 
-function addSamplePlayer(audioContext, lBuf, rBuf, destination) {
-	var samplePlayer = new lib.SamplePlayer(lBuf, rBuf),
-		scriptProcessor = audioContext.createScriptProcessor(1024, 0, 2);
-
-	scriptProcessor.onaudioprocess = samplePlayer.processAudio;
-	scriptProcessor.connect(destination);
-
-	// store to workaround buggy garbage collection
-	(window.scriptProcessors = window.scriptProcessors || []).push(scriptProcessor);
-
-	return samplePlayer;
-}
-
-
 function main(buffer) {
 
 	var w = 4 * 4,
@@ -86,16 +76,12 @@ function main(buffer) {
 		canvas = document.createElement('canvas');
 	document.getElementsByTagName('body')[0].appendChild(canvas);
 
-	var automaton = setupAutomaton(w, h),
-		audioContext = lib.AudioUtil.getContext(),
-		//lBuf = buffer.getChannelData(0),
-		//rBuf = buffer.getChannelData(1),
-		latestCells = automaton.update(window.args),
+	var audioContext = lib.AudioUtil.getContext(),
 		bufferLength = 2048,
 		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
 		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
 		grainCount = 4,
-		rate = 0.001,
+		rate = 0.0001,
 		pos = 0,
 		pitch = 1,
 		paused = true,
@@ -107,7 +93,7 @@ function main(buffer) {
 	sampler.amp(0.8);
 
 	// first test: cache a static one
-	/*function getFrame() {
+	function getFrame() {
 		var i = 0,
 			rates = [],
 			delays = [],
@@ -122,33 +108,14 @@ function main(buffer) {
 			delays: delays,
 			posRatios: posRatios
 		}
-	};*/
-
-	function getFrame(cells) {
-		var i = 0,
-			rates = [],
-			delays = [],
-			posRatios = [];
-		for (; i < grainCount; i++) {
-			rates[i] = pitch * (0.5 + cells[i * 3] / 255);
-			delays[i] = Math.floor((i / grainCount) * bufferLength);
-			//delays[i] = Math.floor((cells[i * 3 + 1] / 255) * bufferLength);
-			posRatios[i] = pos = (pos + rate * cells[i * 3 + 2] / 255) % 1;
-		}
-		return {
-			rates: rates,
-			delays: delays,
-			posRatios: posRatios
-		}
 	};
 
 	function processAudio(e) {
-		latestCells = automaton.update(window.args); // TODO: args as a global var: super shitty, be ashamed
 		// TODO: should return the portion of the frame that isn't completely played = partially future grains!
 		granulator.processAudio(
 			e.outputBuffer.getChannelData(0),
 			e.outputBuffer.getChannelData(1),
-			getFrame(latestCells));
+			getFrame());
 	};
 
 	scriptProcessor.onaudioprocess = processAudio;
@@ -159,10 +126,10 @@ function main(buffer) {
 	}
 
 	// add UI animation
-	var fps = new lib.FPS();
+	/*var fps = new lib.FPS();
 	fps.tick.add(function(dt) {
 		render(canvas, w, h, latestCells);
-	});
+	});*/
 
 	// add GUI, dat.gui is designed to operate on public fields
 	// to fit with our design, we introduce a mock object
@@ -173,7 +140,7 @@ function main(buffer) {
 			rate: rate,
 			pitch: pitch
 		};
-	gui.add(mock, 'grainCount', 1, 20).onChange(function(newValue) {
+	gui.add(mock, 'grainCount', 1, 60).onChange(function(newValue) {
 		console.log('change');
 		audioPlaying(false);
 		grainCount = Math.floor(newValue);
@@ -186,7 +153,7 @@ function main(buffer) {
 		granulator.updateGrains(grainCount, grainLength);
 		audioPlaying(true);
 	});
-	gui.add(mock, 'rate', 0.001, 0.01).onChange(function(newValue) {
+	gui.add(mock, 'rate', rate * 0.1, rate * 10).onChange(function(newValue) {
 		rate = newValue;
 	});
 	gui.add(mock, 'pitch', 0.5, 4).onChange(function(newValue) {
@@ -196,9 +163,10 @@ function main(buffer) {
 	//...
 	function togglePause() {
 		paused = !paused;
-		fps.enabled(!paused);
+		//fps.enabled(!paused);
 		audioPlaying(!paused);
 	}
+
 
 	window.addEventListener('click', function(){
 		togglePause();
@@ -208,5 +176,5 @@ function main(buffer) {
 }
 
 window.onload = function() {
-	lib.AudioUtil.loadSample('media/sine.wav', main);
+	lib.AudioUtil.loadSample('media/funkpad.wav', main);
 };
