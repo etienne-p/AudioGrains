@@ -82,8 +82,14 @@ var GranulatorUtil = (function() {
 	};
 })();
 
-var Granulator = function(sampler) {
+var Granulator = function(sampler, bufferSize) {
 	this.sampler = sampler;
+	// we work with inner buffer to have a continuous sound
+	this._emptyBuf = [];
+	this._bufferSize = bufferSize;
+	for (var i; i < bufferSize; ++i) this._emptyBuf[i] = 0;
+	this._bufL = this._emptyBuf.slice(0).concat(this._emptyBuf.slice(0));
+	this._bufR = this._emptyBuf.slice(0).concat(this._emptyBuf.slice(0));
 }
 
 Granulator.prototype = {
@@ -95,17 +101,11 @@ Granulator.prototype = {
 		this._envelope = this.genEnv(length); // cache a single envelope
 	},
 
-	requestFrameData: function() {
-		throw 'requestFrameData should be overriden';
-	},
-
 	// in fact, the script processor using the granulator is responsible for requesting frame data
 	processAudio: function(outputBufferL, outputBufferR, frameData) {
 
-		// TODO: CHROME ISSUE: buffer seems to be reused, and needs exploicit reset
-		var i = 0; len = outputBufferL.length;
-		for (; i < len; ++i) outputBufferL[i] = outputBufferR[i] = 0;
-		
+		// TODO: CHROME ISSUE: buffer seems to be reused, and needs explicit reset
+
 		// addGrainsToBuffer(grains, rates, delays, posRatios, sampler, bufLeft, bufRight) {
 		this.addGrainsToBuffer(
 			this.grains,
@@ -113,9 +113,21 @@ Granulator.prototype = {
 			frameData.delays,
 			frameData.posRatios,
 			this.sampler,
-			outputBufferL,
-			outputBufferR,
+			this._bufL,
+			this._bufR,
 			this._envelope);
+
+		// ARCHITECTURE: add future buffer handling here
+		var i = 0,
+			len = outputBufferL.length;
+		for (; i < len; ++i) {
+			outputBufferL[i] = this._bufL[i];
+			outputBufferR[i] = this._bufR[i];
+		}
+
+		// remove used chunk, add new one
+		this._bufL = this._bufL.slice(this._bufferSize).concat(this._emptyBuf.slice(0));
+		this._bufR = this._bufR.slice(this._bufferSize).concat(this._emptyBuf.slice(0));
 	}
 }
 

@@ -1,86 +1,34 @@
-// helpers
-function render(canvas, w, h, cells) {
-	var side = 20,
-		ctx = canvas.getContext('2d'),
-		i = 0,
-		len = cells.length;
-
-	ctx.clearRect(0, 0, (canvas.width = w * side), (canvas.height = h * side));
-
-	for (i = 0; i < len; ++i) {
-		val = cells[i];
-		ctx.fillStyle = 'rgb(' + val + ',' + val + ',' + val + ')';
-		ctx.fillRect(side * (i % w), 20 + side * Math.floor(i / w), side, side);
-	}
-}
-
-function getCellsRect(automaton, x, y, w, h) {
-	var rv = [],
-		i, j, cell;
-	for (i = 0; i < h; ++i) {
-		for (j = 0; j < w; ++j) {
-			cell = automaton.getCellAt(x + j, y + i);
-			if (cell) rv.push(cell);
-			else throw 'failed at retrieving cell, x: [' + (x + j) + '] y: [' + (y + i) + ']'
-		}
-	}
-	return rv;
-}
-
-function rndInt(min, max) {
-	return Math.floor(min + (max - min) * Math.random());
-}
-
-function setupAutomaton(w, h) {
-
-	var automaton = new Automaton(w, h);
-
-	var q = rndInt(2, 255),
-		k1 = rndInt(1, 8),
-		k2 = rndInt(1, 8),
-		g = rndInt(0, 100);
-
-	k1 = 2;
-	k2 = 7;
-	g = 20;
-
-	// TODO: HACK
-	window.args = [q, k1, k2, g];
-
-	var initValues = (function() {
-		var i = 0,
-			len = w * h,
-			rv = [];
-		for (; i < len; ++i) rv[i] = rndInt(1, q);
-		return rv;
-	})();
-
-	// print config to console:
-	var cfg = {
-		initValues: initValues,
-		q: q,
-		k1: k1,
-		k2: k2,
-		g: g
-	};
-	console.log(JSON.stringify(cfg));
-	automaton.init(initValues);
-	automaton.rule = AutomatonRule.bz;
-	return automaton;
-}
-
 function main(buffer) {
 
-	var w = 4 * 4,
-		h = 4 * 2, // so we have 1024 cells
+	var w = window.innerWidth,
+		h = window.innerHeight, // so we have 1024 cells
 		canvas = document.createElement('canvas');
+
+	canvas.width = w;
+	canvas.height = h;
 	document.getElementsByTagName('body')[0].appendChild(canvas);
+
+	var particles = Particles.create(30, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
+		context = canvas.getContext('2d'),
+		mouse = new lib.Mouse(false, window),
+		fps = new lib.FPS(),
+		friction = 0.6;
+
+	fps.tick.add(function(dt) {
+		Particles.render(
+			Particles.update(
+				particles,
+				mouse.position.value.x / w,
+				mouse.position.value.y / h,
+				friction),
+			context, w, h);
+	});
 
 	var audioContext = lib.AudioUtil.getContext(),
 		bufferLength = 2048,
 		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
 		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
-		grainCount = 4,
+		grainCount = particles.length,
 		rate = 0.0001,
 		pos = 0,
 		pitch = 1,
@@ -97,11 +45,16 @@ function main(buffer) {
 		var i = 0,
 			rates = [],
 			delays = [],
+			p = null,
 			posRatios = [];
+
 		for (; i < grainCount; i++) {
+			p = particles[i];
 			rates[i] = pitch;
+			//rates[i] = 1 - (p.y - h * 0.5 / h);
 			delays[i] = Math.floor((i / grainCount) * bufferLength);
-			posRatios[i] = pos = (pos + rate) % 1;
+			//posRatios[i] = pos = (pos + rate) % 1;
+			posRatios[i] = p.x;
 		}
 		return {
 			rates: rates,
@@ -125,12 +78,6 @@ function main(buffer) {
 		else scriptProcessor.disconnect(audioContext.destination);
 	}
 
-	// add UI animation
-	/*var fps = new lib.FPS();
-	fps.tick.add(function(dt) {
-		render(canvas, w, h, latestCells);
-	});*/
-
 	// add GUI, dat.gui is designed to operate on public fields
 	// to fit with our design, we introduce a mock object
 	var gui = new dat.GUI(),
@@ -138,12 +85,14 @@ function main(buffer) {
 			grainCount: grainCount,
 			grainLength: grainLength,
 			rate: rate,
-			pitch: pitch
+			pitch: pitch,
+			friction: friction
 		};
 	gui.add(mock, 'grainCount', 1, 60).onChange(function(newValue) {
 		console.log('change');
 		audioPlaying(false);
 		grainCount = Math.floor(newValue);
+		Particles.create(grainCount, particles, Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
 		granulator.updateGrains(grainCount, grainLength);
 		audioPlaying(true);
 	});
@@ -159,11 +108,15 @@ function main(buffer) {
 	gui.add(mock, 'pitch', 0.5, 4).onChange(function(newValue) {
 		pitch = newValue;
 	});
+	gui.add(mock, 'friction', 0, 1).onChange(function(newValue) {
+		friction = newValue;
+	});
 
 	//...
 	function togglePause() {
 		paused = !paused;
-		//fps.enabled(!paused);
+		fps.enabled(!paused);
+		mouse.enabled(!paused);
 		audioPlaying(!paused);
 	}
 
@@ -175,36 +128,6 @@ function main(buffer) {
 	togglePause();
 }
 
-/*window.onload = function() {
+window.onload = function() {
 	lib.AudioUtil.loadSample('media/funkpad.wav', main);
-};*/
-
-
-function testParticles() {
-	var w = window.innerWidth,
-		h = window.innerHeight, // so we have 1024 cells
-		canvas = document.createElement('canvas');
-
-	canvas.width = w;
-	canvas.height = h;
-	document.getElementsByTagName('body')[0].appendChild(canvas);
-
-	var particles = Particles.create(30, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
-		context = canvas.getContext('2d'),
-		mouse = new lib.Mouse(false, window),
-		fps = new lib.FPS();
-
-	fps.tick.add(function(dt) {
-		Particles.render(
-			Particles.update(
-				particles,
-				mouse.position.value.x / w,
-				mouse.position.value.y / h),
-			context, w, h);
-	});
-
-	fps.enabled(true);
-	mouse.enabled(true);
-}
-
-window.onload = testParticles;
+};

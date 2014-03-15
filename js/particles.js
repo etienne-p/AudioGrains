@@ -13,24 +13,20 @@ var Particles = (function() {
 	// add / remove [count] particles to particles array
 	// initParticle: method to create a particle
 	function create(count, particles, initParticle) {
-
-		if (typeof particles == 'undefined') particles = [];
-
+		
 		var d = count - particles.length,
 			i = 0;
-		if (d > 0) { // adding particles
-			for (; i < d; ++i) particles[count - d + i] = initParticle.call();
-		} else { // removing particles
-			particles = particles.splice(0, -d);
-		}
+		if (d > 0) for (; i < d; ++i) particles.push(initParticle.call());
+		else particles.splice(0, -d);
 
 		// TODO TMP
-		if (count != particles.length) throw 'Particles create: unexpected particles count'
+		if (count != particles.length) 
+			throw 'Particles create: unexpected particles count, count: [' + count + '] length: [' + particles.length + ']'
 		return particles;
 	}
 
 	// update particles
-	function update(particles, attractorX, attractorY) {
+	function update(particles, attractorX, attractorY, friction) {
 		var i = 0,
 			p = null,
 			len = particles.length;
@@ -38,9 +34,12 @@ var Particles = (function() {
 			p = particles[i];
 			p.vx += 0.1 * (attractorX - p.x);
 			p.vy += 0.1 * (attractorY - p.y);
-			p.x += (p.vx *= 0.9);
-			p.y += (p.vy *= 0.9);
-
+			p.vx *= friction;
+			p.vy *= friction;
+			p.x += p.vx;
+			p.y += p.vy;
+			attractorX = p.x;
+			attractorY = p.y;
 		}
 		return particles;
 	}
@@ -60,7 +59,6 @@ var Particles = (function() {
 			context.beginPath();
 			p = particles[i];
 			context.arc(p.x * width, p.y * height, 4, 0, pi2);
-			//context.arc(Math.random() * width, Math.random() * height, 4, 0, pi2);
 			context.fill();
 		}
 	}
