@@ -29,12 +29,12 @@ function main(buffer) {
 		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
 		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
 		grainCount = particles.length,
-		rate = 0.0001,
+		rate = 0.00001,
 		pos = 0,
 		pitch = 1,
 		paused = true,
 		grainLength = (18 / 1000) * 44100, // 20ms
-		granulator = new Granulator(sampler);
+		granulator = new Granulator(sampler, bufferLength);
 
 	window.xxx = scriptProcessor; // prevent buggy garbage collection
 	granulator.updateGrains(grainCount, grainLength);
@@ -53,8 +53,8 @@ function main(buffer) {
 			rates[i] = pitch;
 			//rates[i] = 1 - (p.y - h * 0.5 / h);
 			delays[i] = Math.floor((i / grainCount) * bufferLength);
-			//posRatios[i] = pos = (pos + rate) % 1;
-			posRatios[i] = p.x;
+			posRatios[i] = pos = (pos + rate * p.x) % 1;
+			//posRatios[i] = 0.5 + rate * p.x;
 		}
 		return {
 			rates: rates,

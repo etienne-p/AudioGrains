@@ -87,7 +87,7 @@ var Granulator = function(sampler, bufferSize) {
 	// we work with inner buffer to have a continuous sound
 	this._emptyBuf = [];
 	this._bufferSize = bufferSize;
-	for (var i; i < bufferSize; ++i) this._emptyBuf[i] = 0;
+	for (var i = 0; i < bufferSize; ++i) this._emptyBuf[i] = 0;
 	this._bufL = this._emptyBuf.slice(0).concat(this._emptyBuf.slice(0));
 	this._bufR = this._emptyBuf.slice(0).concat(this._emptyBuf.slice(0));
 }
