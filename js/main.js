@@ -168,13 +168,43 @@ function main(buffer) {
 	}
 
 
-	window.addEventListener('click', function(){
+	window.addEventListener('click', function() {
 		togglePause();
 	});
 
 	togglePause();
 }
 
-window.onload = function() {
+/*window.onload = function() {
 	lib.AudioUtil.loadSample('media/funkpad.wav', main);
-};
+};*/
+
+
+function testParticles() {
+	var w = window.innerWidth,
+		h = window.innerHeight, // so we have 1024 cells
+		canvas = document.createElement('canvas');
+
+	canvas.width = w;
+	canvas.height = h;
+	document.getElementsByTagName('body')[0].appendChild(canvas);
+
+	var particles = Particles.create(30, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
+		context = canvas.getContext('2d'),
+		mouse = new lib.Mouse(false, window),
+		fps = new lib.FPS();
+
+	fps.tick.add(function(dt) {
+		Particles.render(
+			Particles.update(
+				particles,
+				mouse.position.value.x / w,
+				mouse.position.value.y / h),
+			context, w, h);
+	});
+
+	fps.enabled(true);
+	mouse.enabled(true);
+}
+
+window.onload = testParticles;
