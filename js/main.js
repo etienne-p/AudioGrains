@@ -97,6 +97,7 @@ function main(buffer) {
 		grainCount = 4,
 		rate = 0.001,
 		pos = 0,
+		pitch = 1,
 		paused = true,
 		grainLength = (18 / 1000) * 44100, // 20ms
 		granulator = new Granulator(sampler);
@@ -106,15 +107,33 @@ function main(buffer) {
 	sampler.amp(0.8);
 
 	// first test: cache a static one
-	function getFrame() {
+	/*function getFrame() {
 		var i = 0,
 			rates = [],
 			delays = [],
 			posRatios = [];
 		for (; i < grainCount; i++) {
-			rates[i] = 1;
+			rates[i] = pitch;
 			delays[i] = Math.floor((i / grainCount) * bufferLength);
 			posRatios[i] = pos = (pos + rate) % 1;
+		}
+		return {
+			rates: rates,
+			delays: delays,
+			posRatios: posRatios
+		}
+	};*/
+
+	function getFrame(cells) {
+		var i = 0,
+			rates = [],
+			delays = [],
+			posRatios = [];
+		for (; i < grainCount; i++) {
+			rates[i] = pitch * (0.5 + cells[i * 3] / 255);
+			delays[i] = Math.floor((i / grainCount) * bufferLength);
+			//delays[i] = Math.floor((cells[i * 3 + 1] / 255) * bufferLength);
+			posRatios[i] = pos = (pos + rate * cells[i * 3 + 2] / 255) % 1;
 		}
 		return {
 			rates: rates,
@@ -129,7 +148,7 @@ function main(buffer) {
 		granulator.processAudio(
 			e.outputBuffer.getChannelData(0),
 			e.outputBuffer.getChannelData(1),
-			getFrame());
+			getFrame(latestCells));
 	};
 
 	scriptProcessor.onaudioprocess = processAudio;
@@ -151,7 +170,8 @@ function main(buffer) {
 		mock = {
 			grainCount: grainCount,
 			grainLength: grainLength,
-			rate: rate
+			rate: rate,
+			pitch: pitch
 		};
 	gui.add(mock, 'grainCount', 1, 20).onChange(function(newValue) {
 		console.log('change');
@@ -166,8 +186,11 @@ function main(buffer) {
 		granulator.updateGrains(grainCount, grainLength);
 		audioPlaying(true);
 	});
-	gui.add(mock, 'rate', 0.0001, 0.2).onChange(function(newValue) {
+	gui.add(mock, 'rate', 0.001, 0.01).onChange(function(newValue) {
 		rate = newValue;
+	});
+	gui.add(mock, 'pitch', 0.5, 4).onChange(function(newValue) {
+		pitch = newValue;
 	});
 
 	//...
@@ -179,9 +202,11 @@ function main(buffer) {
 
 	window.addEventListener('click', function(){
 		togglePause();
-	})
+	});
+
+	togglePause();
 }
 
 window.onload = function() {
-	lib.AudioUtil.loadSample('media/loop.wav', main);
+	lib.AudioUtil.loadSample('media/sine.wav', main);
 };
