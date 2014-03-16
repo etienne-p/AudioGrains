@@ -12,7 +12,8 @@ function main(buffer) {
 		context = canvas.getContext('2d'),
 		mouse = new lib.Mouse(false, window),
 		fps = new lib.FPS(),
-		friction = 0.6;
+		friction = 0.6,
+		acceleration = 0.1;
 
 	fps.tick.add(function(dt) {
 		Particles.render(
@@ -20,6 +21,7 @@ function main(buffer) {
 				particles,
 				mouse.position.value.x / w,
 				mouse.position.value.y / h,
+				acceleration,
 				friction),
 			context, w, h);
 	});
@@ -86,6 +88,7 @@ function main(buffer) {
 			grainLength: grainLength,
 			rate: rate,
 			pitch: pitch,
+			acceleration: acceleration,
 			friction: friction
 		};
 	gui.add(mock, 'grainCount', 1, 60).onChange(function(newValue) {
@@ -107,6 +110,9 @@ function main(buffer) {
 	});
 	gui.add(mock, 'pitch', 0.5, 4).onChange(function(newValue) {
 		pitch = newValue;
+	});
+	gui.add(mock, 'acceleration', 0, 1).onChange(function(newValue) {
+		acceleration = newValue;
 	});
 	gui.add(mock, 'friction', 0, 1).onChange(function(newValue) {
 		friction = newValue;
