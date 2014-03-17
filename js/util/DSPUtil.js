@@ -10,46 +10,26 @@ lib.DSPUtil = {
 
 	envelopDetect: function(input, attack, release, sampleRate) {
 
-		/*
-		imagine if you were doing it with a pen
-		low pass, detect peaks, join peaks, simplify (douglas peucker)
-
-		//attack and release in milliseconds
-		float ga = (float) exp(-1/(SampleRate*attack));
-		float gr = (float) exp(-1/(SampleRate*release));
-
-		float envelope=0;
-
-		for(...)
-		{
-		  //get your data into 'input'
-		  EnvIn = abs(input);
-
-		  if(envelope < EnvIn)
-		  {
-		     envelope *= ga;
-		     envelope += (1-ga)*EnvIn;
-		  }
-		  else
-		  {
-		     envelope *= gr;
-		     envelope += (1-gr)*EnvIn;
-		  }
-		  //envelope now contains.........the envelope ;)
-		}
-		*/
-
 		var i = 1,
+			envIn = 0,
+			envOut = 0,
+			outPut = [envOut],
 			len = input.length,
-			filtered = lib.DSPUtil.lowpass(input, alpha),
-			output = [filtered[0]],
-			prev = 0, // previous sample
-			d = 0, // sample variation 
-			prevCurve = 0;
-		for (; i < len; ++i) {
-			d = filtered[i] - prev;
+			ga = Math.exp(-1 / (sampleRate * attack)),
+			gr = Math.exp(-1 / (sampleRate * release)),
+			dga = 1 - ga,
+			dgr = 1 - gr; //attack and release in milliseconds
 
-			prev = filtered[i];
+		for (; i < len; ++i) {
+			envIn = Math.abs(input);
+			if (envOut < env) {
+				envOut *= ga;
+				envOut += dga * envIn;
+			} else {
+				envOut *= gr;
+				envOut += dgr * envIn;
+			}
+			outPut[i] = envOut;
 		}
 		return output;
 	}
