@@ -31,9 +31,6 @@ function main(buffer) {
 		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
 		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
 		grainCount = particles.length,
-		rate = 0.00001,
-		pos = 0,
-		pitch = 1,
 		paused = true,
 		grainLength = (18 / 1000) * 44100, // 20ms
 		granulator = new Granulator(sampler, bufferLength);
@@ -52,11 +49,9 @@ function main(buffer) {
 
 		for (; i < grainCount; i++) {
 			p = particles[i];
-			rates[i] = pitch;
-			//rates[i] = 1 - (p.y - h * 0.5 / h);
+			rates[i] = 1 - (p.y - h * 0.5 / h);
 			delays[i] = Math.floor((i / grainCount) * bufferLength);
-			posRatios[i] = pos = (pos + rate * p.x) % 1;
-			//posRatios[i] = 0.5 + rate * p.x;
+			posRatios[i] = p.x;
 		}
 		return {
 			rates: rates,
@@ -82,16 +77,15 @@ function main(buffer) {
 
 	// add GUI, dat.gui is designed to operate on public fields
 	// to fit with our design, we introduce a mock object
+	// TODO: gui setup code is super repetitive!!!
 	var gui = new dat.GUI(),
 		mock = {
 			grainCount: grainCount,
 			grainLength: grainLength,
-			rate: rate,
-			pitch: pitch,
 			acceleration: acceleration,
 			friction: friction
 		};
-	gui.add(mock, 'grainCount', 1, 60).onChange(function(newValue) {
+	gui.add(mock, 'grainCount', 1, 120).onChange(function(newValue) {
 		console.log('change');
 		audioPlaying(false);
 		grainCount = Math.floor(newValue);
@@ -99,17 +93,11 @@ function main(buffer) {
 		granulator.updateGrains(grainCount, grainLength);
 		audioPlaying(true);
 	});
-	gui.add(mock, 'grainLength', 10, 1000).onChange(function(newValue) {
+	gui.add(mock, 'grainLength', 10, 2000).onChange(function(newValue) {
 		audioPlaying(false);
 		grainLength = Math.floor(newValue);
 		granulator.updateGrains(grainCount, grainLength);
 		audioPlaying(true);
-	});
-	gui.add(mock, 'rate', rate * 0.1, rate * 10).onChange(function(newValue) {
-		rate = newValue;
-	});
-	gui.add(mock, 'pitch', 0.5, 4).onChange(function(newValue) {
-		pitch = newValue;
 	});
 	gui.add(mock, 'acceleration', 0, 1).onChange(function(newValue) {
 		acceleration = newValue;

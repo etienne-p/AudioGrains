@@ -1,4 +1,5 @@
 lib.AudioUtil = {
+
 	getContext: function() {
 		var rv = null;
 		if ('webkitAudioContext' in window) {
