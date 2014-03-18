@@ -34,6 +34,13 @@ lib.GeomUtil = {
 		}
 	},
 
+	getSymmetric: function(ofPt, centerPt){
+		return {
+			x : - ofPt.x + 2 * centerPt.x,
+			y : - ofPt.y + 2 * centerPt.y
+		}
+	},
+
 	// segment
 	distanceToSegment: function(segStartX, segStartY, segEndX, segEndY, pointX, pointY){
 
