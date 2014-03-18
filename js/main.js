@@ -27,7 +27,7 @@ function main(buffer) {
 	});
 
 	var audioContext = lib.AudioUtil.getContext(),
-		bufferLength = 2048,
+		bufferLength = 4096,
 		scriptProcessor = audioContext.createScriptProcessor(bufferLength, 0, 2),
 		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
 		grainCount = particles.length,
@@ -37,7 +37,7 @@ function main(buffer) {
 
 	window.xxx = scriptProcessor; // prevent buggy garbage collection
 	granulator.updateGrains(grainCount, grainLength);
-	sampler.amp(0.8);
+	sampler.amp(0.2);
 
 	// first test: cache a static one
 	function getFrame() {
@@ -49,9 +49,9 @@ function main(buffer) {
 
 		for (; i < grainCount; i++) {
 			p = particles[i];
-			rates[i] = 1 - (p.y - h * 0.5 / h);
+			rates[i] = 1 - 0.5 * (p.y - h * 0.5 / h);
 			delays[i] = Math.floor((i / grainCount) * bufferLength);
-			posRatios[i] = p.x;
+			posRatios[i] = Math.max(0 , Math.min(1, p.x));
 		}
 		return {
 			rates: rates,
@@ -93,7 +93,7 @@ function main(buffer) {
 		granulator.updateGrains(grainCount, grainLength);
 		audioPlaying(true);
 	});
-	gui.add(mock, 'grainLength', 10, 2000).onChange(function(newValue) {
+	gui.add(mock, 'grainLength', 10, 4000).onChange(function(newValue) {
 		audioPlaying(false);
 		grainLength = Math.floor(newValue);
 		granulator.updateGrains(grainCount, grainLength);

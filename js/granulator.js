@@ -9,11 +9,6 @@ var GranulatorUtil = (function() {
 		return 0.5 * (1 + Math.cos(Math.PI * (2 * x + 1)));
 	}
 
-	/*function gaussianEnv(x){
-		var b = 0.5, c = 0.12;
-		return Math.exp(- (x - b) * (x - b) / (2 * c * c))
-	}*/
-
 	// returns an array
 	function genEnv(length) {
 		var i = 0,
