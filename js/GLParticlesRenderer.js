@@ -1,97 +1,59 @@
-var GLParticlesRenderer = function(canvas) {
+var GLParticlesRenderer = function() {
 
-	// imports
-	var makeShader = lib.GLUtil.makeShader;
+	// set the scene size
+	var WIDTH = 400,
+		HEIGHT = 300;
 
-	// vars
-	var self = {},
-		gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'),
-		glProgram = null,
-		fragmentShader = null,
-		vertexShader = null,
-		vertexPositionAttribute = null,
-		verticeBuffer = null,
-		vertices = null,
-		verticeBuffer = null,
-		pMatrix = mat4.create(),
-		pMatrixUniform = null,
-		mvMatrix = mat4.create(),
-		mvMatrixUniform = null;
+	// set some camera attributes
+	var VIEW_ANGLE = 45,
+		ASPECT = WIDTH / HEIGHT,
+		NEAR = 0.1,
+		FAR = 10000;
 
-	//-- Helpers
-	function glClear() {
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
+	// create a WebGL renderer, camera
+	// and a scene
+	var renderer = new THREE.WebGLRenderer();
+	var camera = new THREE.PerspectiveCamera(75, WIDTH / HEIGHT, 1, 3000);
+	camera.position.z = 1000;
+
+	var scene = new THREE.Scene();
+
+	// add the camera to the scene
+	scene.add(camera);
+
+	// start the renderer
+	renderer.setSize(WIDTH, HEIGHT);
+
+	// attach the render-supplied DOM element
+	document.getElementById('container').appendChild(renderer.domElement);
+
+	var particleCount = 1800,
+		particles = new THREE.Geometry(),
+		pMaterial = new THREE.ParticleBasicMaterial({
+			color: 0xFFFFFF,
+			size: 20
+		});
+
+	// now create the individual particles
+	for (var p = 0; p < particleCount; p++) {
+
+		var vertex = new THREE.Vector3();
+		vertex.x = Math.random() * 2000 - 1000;
+		vertex.y = Math.random() * 2000 - 1000;
+		vertex.z = Math.random() * 2000 - 1000;
+
+		particles.vertices.push(vertex);
 	}
 
-	function getMatrixUniforms() {
-		pMatrixUniform = gl.getUniformLocation(glProgram, "uPMatrix");
-		mvMatrixUniform = gl.getUniformLocation(glProgram, "uMVMatrix");
-	}
+	// create the particle system
+	var particleSystem = new THREE.ParticleSystem(
+		particles,
+		pMaterial);
 
-	function setMatrixUniforms() {
-		gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
-		gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
-	}
+	// add it to the scene
+	scene.add(particleSystem);
 
-	//...
-	function initShaders() {
-		vertexShader = makeShader(gl, document.getElementById('shader-vs').innerHTML, gl.VERTEX_SHADER);
-		fragmentShader = makeShader(gl, document.getElementById('shader-fs').innerHTML, gl.FRAGMENT_SHADER);
-		glProgram = gl.createProgram();
-		gl.attachShader(glProgram, vertexShader);
-		gl.attachShader(glProgram, fragmentShader);
-		gl.linkProgram(glProgram);
-		gl.useProgram(glProgram);
-	}
+	renderer.render( scene, camera );
 
-	function initVertices(numVertices_) {
-		vertices = new Float32Array(numVertices_ * 3),
-		verticeBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, verticeBuffer);
-		vertexPositionAttribute = gl.getAttribLocation(glProgram, "aVertexPosition");
-		gl.enableVertexAttribArray(vertexPositionAttribute);
-		gl.bindBuffer(gl.ARRAY_BUFFER, verticeBuffer);
-		gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-	}
 
-	//-- Public
-	self.init = function() {
-		glClear();
-		initShaders();
-		getMatrixUniforms();
-	}
-
-	self.update = function(particles) {
-
-		
-		// TODO: appens once, shoud NOT check every time
-		/*if (!vertices) {
-			initVertices(numVertices)
-		}
-
-		for (i = 0; i < len; ++i) {
-			
-			// bottom left
-			vertices[++vertexIndex] = radMin * cosmin;
-			vertices[++vertexIndex] = radMin * sinmin;
-			vertices[++vertexIndex] = 0; // z
-		}
-
-		// using gl.DYNAMIC_DRAW instead of STATIC_DRAW doesn't seem to make a difference...
-		gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
-		gl.drawArrays(gl.TRIANGLES, 0, len * 6);*/
-	}
-
-	self.resize = function(w_, h_) {
-		canvas.width = w_;
-		canvas.height = h_;
-		gl.viewport(0, 0, canvas.width, canvas.height);
-		mat4.perspective(pMatrix, Math.PI * 0.25, canvas.width / canvas.height, 0.1, 100.0);
-		mat4.identity(mvMatrix);
-		mat4.translate(mvMatrix, mvMatrix, [0, 0, -2]);
-		setMatrixUniforms();
-	}
-
-	return self;
 }

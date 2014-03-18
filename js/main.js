@@ -121,6 +121,10 @@ function main(buffer) {
 	togglePause();
 }
 
-window.onload = function() {
+/*window.onload = function() {
 	lib.AudioUtil.loadSample('media/perc.wav', main);
-};
+};*/
+
+window.onload = function() {
+	var glr = new GLParticlesRenderer();
+}
