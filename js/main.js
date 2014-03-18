@@ -123,5 +123,5 @@ function main(buffer) {
 }
 
 window.onload = function() {
-	lib.AudioUtil.loadSample('media/funkpad.wav', main);
+	lib.AudioUtil.loadSample('media/perc.wav', main);
 };

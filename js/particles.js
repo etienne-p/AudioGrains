@@ -52,7 +52,8 @@ var Particles = (function() {
 			p = null,
 			pi2 = 2 * Math.PI,
 			tx = 0, ty = 0
-			midH = height * 0.5;
+			midH = height * 0.5,
+			radius = 5;
 
 		context.fillStyle = '#ff0000';
 		context.strokeStyle = '#ff0000';
@@ -60,14 +61,14 @@ var Particles = (function() {
 		for (; i < len; ++i) {
 			context.beginPath();
 			p = particles[i];
-			context.arc(tx = p.x * width, ty = p.y * height, 4, 0, pi2);
+			context.arc(tx = p.x * width, ty = p.y * height, radius, 0, pi2);
 			context.fill();
 			context.moveTo(tx, ty);
 			context.lineTo(tx, midH);
 			/*context.moveTo(p.x * width, p.y * height);
 			context.lineTo(p.x * width, 0.5 * height);*/
 			context.stroke();
-			
+			radius *= 0.9;
 		}
 	}
 
