@@ -13,18 +13,8 @@ function main(buffer) {
 		mouse = new lib.Mouse(false, window),
 		fps = new lib.FPS(),
 		friction = 0.6,
+		renderer = new GLParticlesRenderer().init().setParticlesCount(particles.length).resize(w, h),
 		acceleration = 0.1;
-
-	fps.tick.add(function(dt) {
-		Particles.renderOnContext2D(
-			Particles.update(
-				particles,
-				mouse.position.value.x / w,
-				mouse.position.value.y / h,
-				acceleration,
-				friction),
-			context, w, h);
-	});
 
 	var audioContext = lib.AudioUtil.getContext(),
 		bufferLength = 4096,
@@ -33,7 +23,19 @@ function main(buffer) {
 		grainCount = particles.length,
 		paused = true,
 		grainLength = (18 / 1000) * 44100, // 20ms
-		granulator = new Granulator(sampler, bufferLength);
+		granulator = new Granulator(sampler, bufferLength),
+		audioBuffer = null;
+
+	fps.tick.add(function(dt) {
+		renderer.render(
+			Particles.update(
+				particles,
+				mouse.position.value.x / w,
+				mouse.position.value.y / h,
+				acceleration,
+				friction),
+			audioBuffer);
+	});
 
 	window.xxx = scriptProcessor; // prevent buggy garbage collection
 	granulator.updateGrains(grainCount, grainLength);
@@ -61,9 +63,8 @@ function main(buffer) {
 	};
 
 	function processAudio(e) {
-		// TODO: should return the portion of the frame that isn't completely played = partially future grains!
 		granulator.processAudio(
-			e.outputBuffer.getChannelData(0),
+			audioBuffer = e.outputBuffer.getChannelData(0),
 			e.outputBuffer.getChannelData(1),
 			getFrame());
 	};

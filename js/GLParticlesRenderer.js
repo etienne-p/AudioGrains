@@ -1,59 +1,100 @@
 var GLParticlesRenderer = function() {
 
 	// set the scene size
-	var WIDTH = 400,
-		HEIGHT = 300;
+	var self = {},
+		width = 400,
+		height = 300,
+		renderer = null,
+		camera = null,
+		scene = null,
+		geometry = null,
+		cr = null;
 
-	// set some camera attributes
-	var VIEW_ANGLE = 45,
-		ASPECT = WIDTH / HEIGHT,
-		NEAR = 0.1,
-		FAR = 10000;
+	// could be externalised
+	function updateVertices(vertices_, particles_, audio_) {
 
-	// create a WebGL renderer, camera
-	// and a scene
-	var renderer = new THREE.WebGLRenderer();
-	var camera = new THREE.PerspectiveCamera(75, WIDTH / HEIGHT, 1, 3000);
-	camera.position.z = 1000;
+		cr.setPoints(particles_);
 
-	var scene = new THREE.Scene();
+		var i = 0,
+			verticeCount = vertices_.length,
+			curvePts = [];
 
-	// add the camera to the scene
-	scene.add(camera);
+		for (; i < verticeCount; ++i) curvePts[i] = cr.getPointAt(i / verticeCount);
 
-	// start the renderer
-	renderer.setSize(WIDTH, HEIGHT);
+		curvePts = [curvePts[0]].concat(curvePts).concat([curvePts[curvePts.length - 1]]);
 
-	// attach the render-supplied DOM element
-	document.getElementById('container').appendChild(renderer.domElement);
+		var p = null,
+			pDown = null,
+			pUp = null,
+			finalPts = [],
+			angle = 0,
+			audioLen = audio_.length,
+			mul = 0,
+			v = null,
+			index = -1;
 
-	var particleCount = 1800,
-		particles = new THREE.Geometry(),
-		pMaterial = new THREE.ParticleBasicMaterial({
-			color: 0xFFFFFF,
-			size: 20
-		});
+		for (i = 1; i < verticeCount + 1; ++i) {
 
-	// now create the individual particles
-	for (var p = 0; p < particleCount; p++) {
+			p = curvePts[i];
+			pDown = curvePts[i - 1];
+			pUp = curvePts[i + 1];
 
-		var vertex = new THREE.Vector3();
-		vertex.x = Math.random() * 2000 - 1000;
-		vertex.y = Math.random() * 2000 - 1000;
-		vertex.z = Math.random() * 2000 - 1000;
+			angle = Math.atan2((pUp.y - pDown.y) * height, (pUp.x - pDown.x) * width) + Math.PI * 0.5;
+			mul = audio_[Math.floor(audioLen * (i - 1) / verticeCount)] / 255;
 
-		particles.vertices.push(vertex);
+			v = vertices_[i - 1];
+			v.x = p.x * width + mul * Math.cos(angle);
+			v.y = p.y * height + mul * Math.sin(angle);
+		}
+
+		return vertices_;
 	}
 
-	// create the particle system
-	var particleSystem = new THREE.ParticleSystem(
-		particles,
-		pMaterial);
+	self.init = function() {
 
-	// add it to the scene
-	scene.add(particleSystem);
+		cr = new CatmullRom();
 
-	renderer.render( scene, camera );
+		renderer = new THREE.WebGLRenderer();
+		camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
+		scene = new THREE.Scene();
 
+		camera.position.z = 1000;
+		scene.add(camera);
+		document.getElementById('container').appendChild(renderer.domElement);
 
+		geometry = new THREE.Geometry();
+		geometry.verticesNeedUpdate = true;
+
+		// create particle system
+		particleSystem = new THREE.ParticleSystem(
+			geometry,
+			new THREE.ParticleBasicMaterial({
+				color: 0xFFFFFF,
+				size: 20
+			}));
+		scene.add(particleSystem);
+
+		return self;
+	}
+
+	self.setParticlesCount = function(count) {
+		var vertices = [];
+		for (var p = 0; p < particlesCount; p++) vertices[i] = new THREE.Vector3();
+		geometry.vertices = vertices;
+		return self;
+	}
+
+	self.resize = function(w, h) {
+		renderer.setSize(width = w, height = h);
+		camera.aspect = width / height;
+		return self;
+	}
+
+	self.render = function(particles_, audio_) {
+		updateVertices(geometry.vertices, particles_, audio_)
+		renderer.render(scene, camera);
+		return self;
+	}
+
+	return self;
 }
