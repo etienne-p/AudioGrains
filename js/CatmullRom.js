@@ -25,7 +25,7 @@ var CatmullRom = function(points_) {
 		var lt = (nPts - 1) * t;
 		return getSegmentPointAt(
 			Math.min(Math.floor(lt) + 1, nPts - 1), 
-			t - Math.floor(lt));
+			lt - Math.floor(lt));
 	}
 
 	function setPoints(points_){
