@@ -8,12 +8,12 @@ function main(buffer) {
 	canvas.height = h;
 	document.getElementsByTagName('body')[0].appendChild(canvas);
 
-	var particles = Particles.create(30, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
+	var particles = Particles.create(6, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
 		context = canvas.getContext('2d'),
 		mouse = new lib.Mouse(false, window),
 		fps = new lib.FPS(),
 		friction = 0.6,
-		renderer = new GLParticlesRenderer().init().setParticlesCount(particles.length).resize(w, h),
+		renderer = new GLParticlesRenderer().init().setParticlesCount(500).resize(w, h),
 		acceleration = 0.1;
 
 	var audioContext = lib.AudioUtil.getContext(),
@@ -24,7 +24,7 @@ function main(buffer) {
 		paused = true,
 		grainLength = (18 / 1000) * 44100, // 20ms
 		granulator = new Granulator(sampler, bufferLength),
-		audioBuffer = null;
+		audioBuffer = [0];
 
 	fps.tick.add(function(dt) {
 		renderer.render(
@@ -122,9 +122,9 @@ function main(buffer) {
 	togglePause();
 }
 
-/*window.onload = function() {
+window.onload = function() {
 	lib.AudioUtil.loadSample('media/perc.wav', main);
-};*/
+};
 
 function testCatmullRom() {
 
@@ -202,5 +202,3 @@ function testCatmullRom() {
 		context.stroke();
 	}
 }
-
-window.onload = testCatmullRom;

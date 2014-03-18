@@ -40,7 +40,7 @@ var GLParticlesRenderer = function() {
 			pUp = curvePts[i + 1];
 
 			angle = Math.atan2((pUp.y - pDown.y) * height, (pUp.x - pDown.x) * width) + Math.PI * 0.5;
-			mul = audio_[Math.floor(audioLen * (i - 1) / verticeCount)] / 255;
+			mul = 2000 * audio_[Math.floor(audioLen * (i - 1) / verticeCount)];
 
 			v = vertices_[i - 1];
 			v.x = p.x * width + mul * Math.cos(angle);
@@ -79,7 +79,7 @@ var GLParticlesRenderer = function() {
 
 	self.setParticlesCount = function(count) {
 		var vertices = [];
-		for (var p = 0; p < particlesCount; p++) vertices[i] = new THREE.Vector3();
+		for (var i = 0; i < count; ++i) vertices[i] = new THREE.Vector3();
 		geometry.vertices = vertices;
 		return self;
 	}
@@ -91,7 +91,8 @@ var GLParticlesRenderer = function() {
 	}
 
 	self.render = function(particles_, audio_) {
-		updateVertices(geometry.vertices, particles_, audio_)
+		updateVertices(geometry.vertices, particles_, audio_);
+		geometry.verticesNeedUpdate = true;
 		renderer.render(scene, camera);
 		return self;
 	}
