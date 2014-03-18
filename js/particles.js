@@ -45,7 +45,7 @@ var Particles = (function() {
 	}
 
 	// draw on canvas
-	function render(particles, context, width, height) {
+	function renderOnContext2D(particles, context, width, height) {
 		context.clearRect(0, 0, width, height);
 		var i = 0,
 			len = particles.length,
@@ -65,8 +65,6 @@ var Particles = (function() {
 			context.fill();
 			context.moveTo(tx, ty);
 			context.lineTo(tx, midH);
-			/*context.moveTo(p.x * width, p.y * height);
-			context.lineTo(p.x * width, 0.5 * height);*/
 			context.stroke();
 			radius *= 0.9;
 		}
@@ -76,6 +74,6 @@ var Particles = (function() {
 		createParticle: createParticle,
 		create: create,
 		update: update,
-		render: render
+		renderOnContext2D: renderOnContext2D
 	}
 })();

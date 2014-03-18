@@ -13,7 +13,31 @@
 </head>
 <body>
 
-   
+   <!-- SHADERS-->
+    <script id="shader-vs" type="x-shader/x-vertex">
+       attribute vec3 aVertexPosition;
+       uniform mat4 uMVMatrix;
+       uniform mat4 uPMatrix;
+       varying mediump vec4 vColor;
+       const float PI = 3.1416;
+
+       void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        float yo = 0.5 + atan(aVertexPosition.y, -aVertexPosition.x)/ (2.0 * PI);
+        vColor = vec4(yo, 0.0, 1.0 - yo, 1.0);
+    }
+    </script>
+    <script id="shader-fs" type="x-shader/x-fragment">
+        #ifdef GL_ES
+        precision mediump float;
+        #endif
+        varying mediump vec4 vColor;
+        void main(void) {
+            //float dist = length(gl_FragCoord.xy - center);
+            gl_FragColor =  vColor;
+        }
+    </script>
+
     <!-- LIB -->
     <script src="lib_js/dat.gui.js"></script>
     <!-- CUSTOM -->
@@ -22,12 +46,14 @@
     <script src="js/core/FPS.js"></script>
     <script src="js/core/Mouse.js"></script>
     <script src="js/util/AudioUtil.js"></script>
+    <script src="js/util/GLUtil.js"></script>
     <script src="js/SamplePlayer.js"></script>
     <script src="js/music.js"></script>
     <script src="js/granulator.js"></script>
     <script src="js/audiogenerator.js"></script>
     <script src="js/automaton.js"></script>
     <script src="js/particles.js"></script>
+    <script src="js/GLParticlesRenderer.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

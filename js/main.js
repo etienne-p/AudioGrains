@@ -16,7 +16,7 @@ function main(buffer) {
 		acceleration = 0.1;
 
 	fps.tick.add(function(dt) {
-		Particles.render(
+		Particles.renderOnContext2D(
 			Particles.update(
 				particles,
 				mouse.position.value.x / w,
@@ -113,7 +113,6 @@ function main(buffer) {
 		mouse.enabled(!paused);
 		audioPlaying(!paused);
 	}
-
 
 	window.addEventListener('click', function() {
 		togglePause();
