@@ -1,0 +1,15 @@
+body {
+	background: black;
+}
+
+#info {
+	position: fixed;
+	width: 600px;
+	z_index: 2;
+	color: #EEEEEE;
+	bottom: 0;
+	line-height: 26px;
+	padding: 6px 12px;
+	font-size: 11px;
+    font-family: 'Lucida Grande', sans-serif;
+}

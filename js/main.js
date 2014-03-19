@@ -1,13 +1,13 @@
 function main(buffer) {
 
-	var particles = Particles.create(6, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
+	var particles = Particles.create(8, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
 		mouse = new lib.Mouse(false, window),
 		fps = new lib.FPS(),
-		friction = 0.6,
+		friction = 0.3,
 		w = window.innerWidth,
 		h = window.innerHeight,
 		renderer = new GLParticlesRenderer().init(1000).resize(w, h),
-		acceleration = 0.1;
+		acceleration = 0.8;
 
 	var audioContext = lib.AudioUtil.getContext(),
 		bufferLength = 4096,
@@ -15,7 +15,7 @@ function main(buffer) {
 		sampler = new lib.SamplePlayer(buffer.getChannelData(0), buffer.getChannelData(1)),
 		grainCount = particles.length,
 		paused = true,
-		grainLength = (18 / 1000) * 44100, // 20ms
+		grainLength = 2500, // 20ms
 		granulator = new Granulator(sampler, bufferLength),
 		audioBuffer = [0];
 
@@ -46,7 +46,7 @@ function main(buffer) {
 			p = particles[i];
 			rates[i] = 1 - 0.5 * (p.y - h * 0.5 / h);
 			delays[i] = Math.floor((i / grainCount) * bufferLength);
-			posRatios[i] = Math.max(0, Math.min(1, p.x));
+			posRatios[i] = Math.max(0, Math.min(1, p.x + 0.5));
 		}
 		return {
 			rates: rates,
@@ -121,11 +121,5 @@ function main(buffer) {
 }
 
 window.onload = function() {
-	lib.AudioUtil.loadSample('media/funkpad.wav', main);
+	lib.AudioUtil.loadSample('media/human.wav', main);
 };
-
-function drawBuffer(buffer) {
-
-
-
-}

@@ -36,7 +36,7 @@ GLParticlesRenderer.prototype = {
 
 		this.line = new THREE.Line(
 			this.geometry,
-			new THREE.LineBasicMaterial());
+			new THREE.LineBasicMaterial({color: '#2FA1D6'}));
 		this.scene.add(this.line);
 
 		return this;

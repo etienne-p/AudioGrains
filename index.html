@@ -6,12 +6,18 @@
     <title>CellGrains</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
-    <!--<link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="css/cookies.css">-->
-    <style>body {background: black;}</style>
+    <!--<link rel="stylesheet" href="css/normalize.css">-->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div id="info">
+        Click anywhere to pause/resume.<br />
+        The curve passes through a set of points,<br />
+        these points represent audio grains:<br />
+        x coordinate -> grain position<br />
+        y coordinate -> grain pitch<br />
+        Having a high grain count and length at the same time might be cpu intensive.
+    </div>
     <div id="container"></div>
     <!-- LIB -->
     <script src="lib_js/dat.gui.js"></script>
