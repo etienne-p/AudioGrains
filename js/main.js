@@ -32,7 +32,7 @@ function main(buffer) {
 
 	window.xxx = scriptProcessor; // prevent buggy garbage collection
 	granulator.updateGrains(grainCount, grainLength);
-	sampler.amp(0.2);
+	sampler.amp(0.8);
 
 	// first test: cache a static one
 	function getFrame() {
@@ -121,7 +121,7 @@ function main(buffer) {
 }
 
 window.onload = function() {
-	lib.AudioUtil.loadSample('media/perc.wav', main);
+	lib.AudioUtil.loadSample('media/funkpad.wav', main);
 };
 
 function drawBuffer(buffer) {
