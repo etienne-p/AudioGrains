@@ -21,10 +21,10 @@ GLParticlesRenderer.prototype = {
 			this.width / -2,
 			this.width / 2,
 			this.height / 2,
-			this.height / -2, 1, 1000);
+			this.height / -2, 0, 500);
 		this.scene = new THREE.Scene();
 
-		this.camera.z = -500;
+		this.camera.z = 0;
 		this.camera.lookAt(new THREE.Vector3(0, 0, 1));
 
 		this.scene.add(this.camera);
@@ -90,9 +90,9 @@ GLParticlesRenderer.prototype = {
 			ratio = (i - 1) / verticeCount;
 			mul = (1 - ratio) * audio[Math.floor(audioLen * ratio)];
 
-			positions[++index] = -((p.x - 0.5) * 2 + mul * Math.cos(angle)) * this.width;
-			positions[++index] = -((p.y - 0.5) * 2 + mul * Math.sin(angle)) * this.height;
-			positions[++index] = 500;
+			positions[++index] = -(p.x + mul * Math.cos(angle)) * this.width;
+			positions[++index] = -(p.y + mul * Math.sin(angle)) * this.height;
+			positions[++index] = 0; // TODO, if it remains constant, don't set it
 		}
 
 		return positions;

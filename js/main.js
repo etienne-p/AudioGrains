@@ -4,7 +4,8 @@ function main(buffer) {
 		mouse = new lib.Mouse(false, window),
 		fps = new lib.FPS(),
 		friction = 0.6,
-		w = window.innerWidth, h = window.innerHeight,
+		w = window.innerWidth,
+		h = window.innerHeight,
 		renderer = new GLParticlesRenderer().init(1000).resize(w, h),
 		acceleration = 0.1;
 
@@ -22,8 +23,8 @@ function main(buffer) {
 		renderer.render(
 			Particles.update(
 				particles,
-				mouse.position.value.x / w,
-				mouse.position.value.y / h,
+				(mouse.position.value.x / w) - 0.5,
+				(mouse.position.value.y / h) - 0.5,
 				acceleration,
 				friction),
 			audioBuffer);
@@ -110,6 +111,12 @@ function main(buffer) {
 		togglePause();
 	});
 
+	window.addEventListener('resize', function() {
+		w = window.innerWidth;
+		h = window.innerHeight;
+		renderer.resize(w, h);
+	});
+
 	togglePause();
 }
 
@@ -117,9 +124,8 @@ window.onload = function() {
 	lib.AudioUtil.loadSample('media/perc.wav', main);
 };
 
-function drawBuffer(buffer){
+function drawBuffer(buffer) {
 
-	
 
 
 }
