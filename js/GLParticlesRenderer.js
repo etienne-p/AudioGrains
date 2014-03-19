@@ -11,12 +11,12 @@ var GLParticlesRenderer = function() {
 		cr = null;
 
 	// could be externalised
-	function updateVertices(vertices_, particles_, audio_) {
+	function updateVertices(positions, particles, audio) {
 
-		cr.setPoints(particles_);
+		cr.setPoints(particles);
 
 		var i = 0,
-			verticeCount = vertices_.length,
+			verticeCount = positions.length / 3,
 			curvePts = [];
 
 		for (; i < verticeCount; ++i) curvePts[i] = cr.getPointAt(i / verticeCount);
@@ -28,9 +28,10 @@ var GLParticlesRenderer = function() {
 			pUp = null,
 			finalPts = [],
 			angle = 0,
-			audioLen = audio_.length,
+			audioLen = audio.length,
 			mul = 0,
 			v = null,
+			ratio = 0,
 			index = -1;
 
 		for (i = 1; i < verticeCount + 1; ++i) {
@@ -40,14 +41,15 @@ var GLParticlesRenderer = function() {
 			pUp = curvePts[i + 1];
 
 			angle = Math.atan2((pUp.y - pDown.y) * height, (pUp.x - pDown.x) * width) + Math.PI * 0.5;
-			mul = 2000 * audio_[Math.floor(audioLen * (i - 1) / verticeCount)];
+			ratio = (i - 1) / verticeCount;
+			mul = (1 - ratio) * audio[Math.floor(audioLen * ratio)];
 
-			v = vertices_[i - 1];
-			v.x = p.x * width + mul * Math.cos(angle);
-			v.y = p.y * height + mul * Math.sin(angle);
+			positions[(i - 1) * 3] = -((p.x - 0.5) * 2 + mul * Math.cos(angle)) * width;
+			positions[(i - 1) * 3 + 1] = -((p.y - 0.5) * 2 + mul * Math.sin(angle)) * height;
+			positions[(i - 1) * 3 + 2] = 500;
 		}
 
-		return vertices_;
+		return positions;
 	}
 
 	self.init = function() {
@@ -55,44 +57,45 @@ var GLParticlesRenderer = function() {
 		cr = new CatmullRom();
 
 		renderer = new THREE.WebGLRenderer();
-		camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
+		camera = new THREE.PerspectiveCamera(90, width / height, 1, 3000);
 		scene = new THREE.Scene();
 
-		camera.position.z = 1000;
+		camera.z = -500;
+		camera.lookAt(new THREE.Vector3(0, 0, 1));
+
 		scene.add(camera);
 		document.getElementById('container').appendChild(renderer.domElement);
 
-		geometry = new THREE.Geometry();
-		geometry.verticesNeedUpdate = true;
+		geometry = new THREE.BufferGeometry();
+		geometry.addAttribute('position', Float32Array, 1000, 3); //600 segments
+		//geometry.dynamic = true; //TODO: check perf impact
 
 		// create particle system
-		particleSystem = new THREE.ParticleSystem(
+		particleSystem = new THREE.Line(
 			geometry,
-			new THREE.ParticleBasicMaterial({
-				color: 0xFFFFFF,
-				size: 20
-			}));
+			new THREE.LineBasicMaterial());
 		scene.add(particleSystem);
 
 		return self;
 	}
 
 	self.setParticlesCount = function(count) {
-		var vertices = [];
+		/*var vertices = [];
 		for (var i = 0; i < count; ++i) vertices[i] = new THREE.Vector3();
-		geometry.vertices = vertices;
+		geometry.vertices = vertices;*/
 		return self;
 	}
 
 	self.resize = function(w, h) {
 		renderer.setSize(width = w, height = h);
 		camera.aspect = width / height;
+		camera.updateProjectionMatrix();
 		return self;
 	}
 
-	self.render = function(particles_, audio_) {
-		updateVertices(geometry.vertices, particles_, audio_);
-		geometry.verticesNeedUpdate = true;
+	self.render = function(particles, audio) {
+		updateVertices(geometry.attributes.position.array, particles, audio);
+		geometry.attributes.position.needsUpdate = true;
 		renderer.render(scene, camera);
 		return self;
 	}

@@ -1,19 +1,11 @@
 function main(buffer) {
 
-	var w = window.innerWidth,
-		h = window.innerHeight, // so we have 1024 cells
-		canvas = document.createElement('canvas');
-
-	canvas.width = w;
-	canvas.height = h;
-	document.getElementsByTagName('body')[0].appendChild(canvas);
-
 	var particles = Particles.create(6, [], Particles.createParticle.bind(undefined, 0, 0, 0, 0)),
-		context = canvas.getContext('2d'),
 		mouse = new lib.Mouse(false, window),
 		fps = new lib.FPS(),
 		friction = 0.6,
-		renderer = new GLParticlesRenderer().init().setParticlesCount(500).resize(w, h),
+		w = window.innerWidth, h = window.innerHeight,
+		renderer = new GLParticlesRenderer().init().setParticlesCount(600).resize(w, h),
 		acceleration = 0.1;
 
 	var audioContext = lib.AudioUtil.getContext(),
@@ -63,8 +55,8 @@ function main(buffer) {
 	};
 
 	function processAudio(e) {
-		granulator.processAudio(
-			audioBuffer = e.outputBuffer.getChannelData(0),
+		audioBuffer = granulator.processAudio(
+			e.outputBuffer.getChannelData(0),
 			e.outputBuffer.getChannelData(1),
 			getFrame());
 	};

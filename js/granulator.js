@@ -121,8 +121,10 @@ Granulator.prototype = {
 		}
 
 		// remove used chunk, add new one
+		var rv = this._bufL.slice(0, this._bufferSize); // TODO REUSE
 		this._bufL = this._bufL.slice(this._bufferSize).concat(this._emptyBuf.slice(0));
 		this._bufR = this._bufR.slice(this._bufferSize).concat(this._emptyBuf.slice(0));
+		return rv;
 	}
 }
 
