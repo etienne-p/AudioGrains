@@ -22,9 +22,7 @@ function main(buffer) {
 	fps.tick.add(function(dt) {
 		renderer.render(
 			Particles.update(
-				particles,
-				(mouse.position.value.x / w) - 0.5,
-				(mouse.position.value.y / h) - 0.5,
+				particles, (mouse.position.value.x / w) - 0.5, (mouse.position.value.y / h) - 0.5,
 				acceleration,
 				friction),
 			audioBuffer);
@@ -123,3 +121,37 @@ function main(buffer) {
 window.onload = function() {
 	lib.AudioUtil.loadSample('media/human.wav', main);
 };
+
+function testLeap() {
+	// Creating our leap controller
+	var controller = new Leap.Controller();
+
+	// Proving that the websocket is open
+	controller.on('connect', function() {
+		console.log('Successfully connected.');
+	});
+
+	// Proving that a device can be connected
+	controller.on('deviceConnected', function() {
+		console.log('A Leap device has been connected.');
+	});
+
+	// And that it can be disconnected
+	controller.on('deviceDisconnected', function() {
+		console.log('A Leap device has been disconnected.');
+	});
+
+	// When the controller is ready, spawn the unicorn!
+	controller.on('ready', function() {
+		console.log('Controller is ready!');
+
+
+
+	});
+
+	controller.connect().on('frame', function(frame) {
+		if (frame) {
+			console.log(frame);
+		}
+	});
+}
