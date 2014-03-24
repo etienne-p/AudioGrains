@@ -5,7 +5,7 @@ body {
 #info {
 	position: fixed;
 	width: 600px;
-	z_index: 2;
+	z-index: 2;
 	color: #EEEEEE;
 	bottom: 0;
 	line-height: 26px;
