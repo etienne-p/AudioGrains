@@ -1,37 +1,37 @@
 lib.FPS = function() {
+	this._pausedFlag = true;
+	this._time = 0;
+	this.tick = new lib.Signal();
+	this.paused = new lib.Signal();
+	this.resumed = new lib.Signal();
 
-	var paused = true,
-		self = {},
-		time = 0,
-		tick = new lib.Signal(),
-		pausedS = new lib.Signal(),
-		resumedS = new lib.Signal();
+	this._loop = this._loop.bind(this);
+}
 
-	function loop() {
-		if (paused) return;
+lib.FPS.prototype = {
+
+	constructor: lib.FPS,
+
+	_loop: function() {
+		if (this._pausedFlag) return;
 		var now = Date.now();
-		tick.dispatch(now - time);
-		time = now;
-		requestAnimationFrame(loop);
-	}
+		this.tick.dispatch(now - this._time);
+		this._time = now;
+		requestAnimationFrame(this._loop);
+	},
 
-	self.enabled = function(val) {
-		var val = val ? true : false;
-		if (paused == !val) return;
+	enabled: function(val) {
+
+		val = val ? true : false;
+		if (this._pausedFlag == !val) return;
 		if (val) {
-			time = Date.now();
-			paused = false;
-			resumedS.dispatch();
-			loop();
+			this._time = Date.now();
+			this._pausedFlag = false;
+			this.resumed.dispatch();
+			this._loop();
 		} else {
-			paused = true;
-			pausedS.dispatch();
+			this._pausedFlag = true;
+			this.paused.dispatch();
 		}
 	}
-
-	self.tick = tick;
-	self.paused = pausedS; // TODO: better...
-	self.resumed = resumedS;
-
-	return self;
 }

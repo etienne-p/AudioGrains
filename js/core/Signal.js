@@ -8,15 +8,15 @@ lib.Signal.prototype = {
 
     constructor: lib.Signal,
 
-    dispatch: function(arg_) {
+    dispatch: function() {
         var i = this._bindings.length,
             binding;
         while (i--) {
             binding = this._bindings[i];
-            binding.callback.call(binding.context, arg_);
+            binding.callback.apply(binding.context, arguments);
             if (binding.once) this.remove(binding.callback);
         }
-        this.value = arg_;
+        this.value = arguments;
     },
 
     //-- add a callback, context is optional
