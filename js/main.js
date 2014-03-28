@@ -22,7 +22,7 @@ function main(buffer) {
 	fps.tick.add(function(dt) {
 		renderer.render(
 			Particles.update(
-				particles, (mouse.position.value.x / w) - 0.5, (mouse.position.value.y / h) - 0.5,
+				particles, (mouse.x / w) - 0.5, (mouse.y / h) - 0.5,
 				acceleration,
 				friction),
 			audioBuffer);
